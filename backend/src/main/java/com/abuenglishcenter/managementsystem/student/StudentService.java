@@ -3,6 +3,7 @@ package com.abuenglishcenter.managementsystem.student;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.abuenglishcenter.managementsystem.user.Role;
@@ -18,6 +19,9 @@ public class StudentService {
     @Autowired 
     private UserRepository userRepository;
 
+    @Autowired 
+    private PasswordEncoder passwordEncoder;
+
     public List<StudentResponseDto> getAllStudents() {
         return studentRepository.findAll().stream().map(this::toDto).toList();
     }
@@ -25,7 +29,7 @@ public class StudentService {
     public StudentResponseDto createStudent(StudentCreateRequestDto request) {
         User user = new User();
         user.setUsername(request.getUsername());
-        user.setPassword(request.getPassword());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setFullName(request.getFullName());
         user.setRole(Role.STUDENT);
         User savedUser = userRepository.save(user);

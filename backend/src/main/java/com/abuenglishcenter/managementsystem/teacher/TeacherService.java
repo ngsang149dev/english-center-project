@@ -1,6 +1,7 @@
 package com.abuenglishcenter.managementsystem.teacher;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.abuenglishcenter.managementsystem.user.Role;
@@ -18,6 +19,8 @@ public class TeacherService {
     @Autowired 
     private TeacherRepository teacherRepository;
 
+    @Autowired PasswordEncoder passwordEncoder;
+
     public List<TeacherResponseDto> getAllTeachers() {
         return teacherRepository.findAll().stream().map(this::toDto).toList();
     }
@@ -26,7 +29,7 @@ public class TeacherService {
         // TODO user builder pattern
         User user = new User();
         user.setUsername(request.getUsername());
-        user.setPassword(request.getPassword());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setFullName(request.getFullName());
         user.setRole(Role.TEACHER);
         User savedUser = userRepository.save(user);
