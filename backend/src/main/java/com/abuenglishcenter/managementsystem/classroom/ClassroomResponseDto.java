@@ -29,5 +29,4 @@ public class ClassroomResponseDto {
         return curriculumSheetUrl;
     }
 
-    
 }

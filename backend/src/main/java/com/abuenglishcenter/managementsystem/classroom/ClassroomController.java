@@ -18,9 +18,17 @@ public class ClassroomController {
     @Autowired 
     private ClassroomService classroomService;
 
+    @Autowired 
+    private ClassScheduleService classScheduleService;
+
     @GetMapping 
     public List<ClassroomResponseDto> getAllClassrooms() {
         return classroomService.getAllClassrooms();
+    }
+
+    @GetMapping("/{id}/schedules")
+    public List<ClassScheduleResponseDto> getSchedulesByClassroom(@PathVariable Long id) {
+        return classScheduleService.getSchedulesByClassroom(id);
     }
 
     @PostMapping
