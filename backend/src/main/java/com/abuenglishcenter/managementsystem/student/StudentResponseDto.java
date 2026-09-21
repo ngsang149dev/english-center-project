@@ -9,14 +9,16 @@ public class StudentResponseDto {
     private String parentPhone;
     private LocalDate dateOfBirth;
     private Status status;
+    private String evaluationSheetUrl;
 
-    public StudentResponseDto(Long id,String username, String fullName, String parentPhone, LocalDate dateOfBirth, Status status) {
+    public StudentResponseDto(Long id,String username, String fullName, String parentPhone, LocalDate dateOfBirth, Status status, String evaluationSheetUrl) {
         this.id = id;
         this.username = username;
         this.fullName = fullName;
         this.parentPhone = parentPhone;
         this.dateOfBirth = dateOfBirth;
         this.status = status;
+        this.evaluationSheetUrl = evaluationSheetUrl;
     }
 
     public Long getId() {
@@ -41,6 +43,9 @@ public class StudentResponseDto {
 
     public Status getStatus() {
         return status;
-    } 
-    
+    }
+
+    public String getEvaluationSheetUrl() {
+        return evaluationSheetUrl;
+    }
 }

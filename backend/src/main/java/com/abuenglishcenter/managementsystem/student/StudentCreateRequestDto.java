@@ -3,11 +3,9 @@ package com.abuenglishcenter.managementsystem.student;
 import java.time.LocalDate;
 
 public class StudentCreateRequestDto {
-
     private String username;
     private String password;
     private String fullName;
-
     private String parentPhone;
     private LocalDate dateOfBirth;
 

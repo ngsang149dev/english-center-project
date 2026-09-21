@@ -45,6 +45,6 @@ public class StudentService {
     }
 
     private StudentResponseDto toDto(Student student) {
-        return new StudentResponseDto(student.getId(),student.getUser().getUsername(),student.getUser().getFullName(), student.getParentPhone(), student.getDateOfBirth(), student.getStatus());
+        return new StudentResponseDto(student.getId(),student.getUser().getUsername(),student.getUser().getFullName(), student.getParentPhone(), student.getDateOfBirth(), student.getStatus(), student.getEvaluationSheetUrl());
     }
 }

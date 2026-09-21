@@ -24,6 +24,16 @@ public class Student {
     @Enumerated(EnumType.STRING)
     private Status status;
 
+    private String evaluationSheetUrl;
+
+    public String getEvaluationSheetUrl() {
+        return evaluationSheetUrl;
+    }
+
+    public void setEvaluationSheetUrl(String evaluationSheetUrl) {
+        this.evaluationSheetUrl = evaluationSheetUrl;
+    }
+
     public Long getId() {
         return id;
     }
