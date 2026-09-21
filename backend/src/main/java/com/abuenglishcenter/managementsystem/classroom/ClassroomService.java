@@ -34,4 +34,13 @@ public class ClassroomService {
     private ClassroomResponseDto toDto(Classroom classroom) {
         return new ClassroomResponseDto(classroom.getId(), classroom.getName(), classroom.getTeacher().getId(), classroom.getCurriculumSheetUrl());
     }
+
+    public ClassroomResponseDto updateTeacher(Long classroomId, Long newTeacherId) {
+        Classroom classroom = classroomRepository.findById(classroomId).orElseThrow(() -> new RuntimeException("Classroom not found"));
+        Teacher newTeacher = teacherRepository.findById(newTeacherId).orElseThrow(() -> new  RuntimeException("Teacher not found"));
+
+        classroom.setTeacher(newTeacher);
+        Classroom updated = classroomRepository.save(classroom);
+        return toDto(updated);
+    }
 }
