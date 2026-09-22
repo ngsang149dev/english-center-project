@@ -1,5 +1,6 @@
 package com.abuenglishcenter.managementsystem.classroom;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,16 +19,20 @@ public class ClassFeeHistoryService {
         return classFeeHistoryRepository.findAll().stream().map(this::toDto).toList();
     }
 
-    public ClassFeeHistoryResponseDto createFeeHistory(ClassFeeHistoryCreateRequestDto request) {
-        Classroom classroom = classroomRepository.findById(request.getClassId()).orElseThrow(() -> new RuntimeException("Classroom not found"));
-
+    private void closeCurrentActiveFee(Long classroomId, LocalDate newEffectiveDate) {
         //Find the activating record (isActive == true) (effectiveTo == null)
-        List<ClassFeeHistory> activeFees = classFeeHistoryRepository.findByClassroomIdAndEffectiveToIsNull(request.getClassId());
+        List<ClassFeeHistory> activeFees = classFeeHistoryRepository.findByClassroomIdAndEffectiveToIsNull(classroomId);
         for (ClassFeeHistory oldFee : activeFees) {
-            oldFee.setEffectiveTo(request.getEffectiveFrom().minusDays(1));
+            oldFee.setEffectiveTo(newEffectiveDate.minusDays(1));
             classFeeHistoryRepository.save(oldFee);
         }
+    }
 
+    public ClassFeeHistoryResponseDto createFeeHistory(ClassFeeHistoryCreateRequestDto request) {
+        Classroom classroom = classroomRepository.findById(request.getClassId())
+        .orElseThrow(() -> new RuntimeException("Classroom not found"));
+
+        closeCurrentActiveFee(request.getClassId(), request.getEffectiveFrom());
         //Create a new record
         ClassFeeHistory newFee = new ClassFeeHistory();
         newFee.setClassroom(classroom);
