@@ -29,13 +29,13 @@ public class ClassFeeHistoryService {
     }
 
     public ClassFeeHistoryResponseDto createFeeHistory(ClassFeeHistoryCreateRequestDto request) {
-        Classroom classroom = classroomRepository.findById(request.getClassId())
+        Classroom checkClassroom = classroomRepository.findById(request.getClassId())
         .orElseThrow(() -> new RuntimeException("Classroom not found"));
 
         closeCurrentActiveFee(request.getClassId(), request.getEffectiveFrom());
         //Create a new record
         ClassFeeHistory newFee = new ClassFeeHistory();
-        newFee.setClassroom(classroom);
+        newFee.setClassroom(checkClassroom);
         newFee.setMonthlyFee(request.getMonthlyFee());
         newFee.setEffectiveFrom(request.getEffectiveFrom());
         newFee.setEffectiveTo(null); // activating

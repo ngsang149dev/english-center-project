@@ -27,19 +27,19 @@ public class StudentService {
     }
 
     public StudentResponseDto createStudent(StudentCreateRequestDto request) {
-        User user = new User();
-        user.setUsername(request.getUsername());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setFullName(request.getFullName());
-        user.setRole(Role.STUDENT);
-        User savedUser = userRepository.save(user);
+        User newUser = new User();
+        newUser.setUsername(request.getUsername());
+        newUser.setPassword(passwordEncoder.encode(request.getPassword()));
+        newUser.setFullName(request.getFullName());
+        newUser.setRole(Role.STUDENT);
+        User savedUser = userRepository.save(newUser);
 
-        Student student = new Student();
-        student.setUser(savedUser);
-        student.setParentPhone(request.getParentPhone());
-        student.setDateOfBirth(request.getDateOfBirth());
-        student.setStatus(Status.ACTIVE);
-        Student savedStudent = studentRepository.save(student);
+        Student newStudent = new Student();
+        newStudent.setUser(savedUser);
+        newStudent.setParentPhone(request.getParentPhone());
+        newStudent.setDateOfBirth(request.getDateOfBirth());
+        newStudent.setStatus(Status.ACTIVE);
+        Student savedStudent = studentRepository.save(newStudent);
 
         return toDto(savedStudent);
     }

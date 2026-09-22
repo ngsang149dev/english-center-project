@@ -27,18 +27,18 @@ public class TeacherService {
 
     public TeacherResponseDto createTeacher(TeacherCreateRequestDto request) {
         // TODO user builder pattern
-        User user = new User();
-        user.setUsername(request.getUsername());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setFullName(request.getFullName());
-        user.setRole(Role.TEACHER);
-        User savedUser = userRepository.save(user);
+        User newUser = new User();
+        newUser.setUsername(request.getUsername());
+        newUser.setPassword(passwordEncoder.encode(request.getPassword()));
+        newUser.setFullName(request.getFullName());
+        newUser.setRole(Role.TEACHER);
+        User savedUser = userRepository.save(newUser);
 
-        Teacher teacher = new Teacher();
-        teacher.setUser(savedUser);
-        teacher.setSpecialization(request.getSpecialization());
-        teacher.setPhone(request.getPhone());
-        Teacher savedTeacher = teacherRepository.save(teacher);
+        Teacher newTeacher = new Teacher();
+        newTeacher.setUser(savedUser);
+        newTeacher.setSpecialization(request.getSpecialization());
+        newTeacher.setPhone(request.getPhone());
+        Teacher savedTeacher = teacherRepository.save(newTeacher);
 
         return toDto(savedTeacher);
     }

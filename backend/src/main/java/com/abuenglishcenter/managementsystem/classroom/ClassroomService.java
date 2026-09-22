@@ -22,12 +22,12 @@ public class ClassroomService {
     }
 
     public ClassroomResponseDto createClassroom(ClassroomCreateRequestDto request) {
-        Teacher teacher = teacherRepository.findById(request.getTeacherId()).orElseThrow(() -> new RuntimeException("Teacher not found"));
-        Classroom classroom = new Classroom();
-        classroom.setName(request.getName());
-        classroom.setTeacher(teacher);
+        Teacher checkTeacher = teacherRepository.findById(request.getTeacherId()).orElseThrow(() -> new RuntimeException("Teacher not found"));
+        Classroom newClassroom = new Classroom();
+        newClassroom.setName(request.getName());
+        newClassroom.setTeacher(checkTeacher);
 
-        Classroom saved = classroomRepository.save(classroom);
+        Classroom saved = classroomRepository.save(newClassroom);
         return toDto(saved);
     }
 

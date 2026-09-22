@@ -23,14 +23,14 @@ public class ClassScheduleService {
     }
 
     public ClassScheduleResponseDto createSchedule(ClassScheduleCreateRequestDto request) {
-        Classroom classroom = classroomRepository.findById(request.getClassId()).orElseThrow(() -> new RuntimeException("Classroom not found"));
+        Classroom checkClassroom = classroomRepository.findById(request.getClassId()).orElseThrow(() -> new RuntimeException("Classroom not found"));
 
-        ClassSchedule schedule = new ClassSchedule();
-        schedule.setClassroom(classroom);
-        schedule.setDayOfWeek(request.getDayOfWeek());
-        schedule.setStartTime(request.getStartTime());
+        ClassSchedule newSchedule = new ClassSchedule();
+        newSchedule.setClassroom(checkClassroom);
+        newSchedule.setDayOfWeek(request.getDayOfWeek());
+        newSchedule.setStartTime(request.getStartTime());
 
-        ClassSchedule saved = classScheduleRepository.save(schedule);
+        ClassSchedule saved = classScheduleRepository.save(newSchedule);
         return toDto(saved);
     }
 
