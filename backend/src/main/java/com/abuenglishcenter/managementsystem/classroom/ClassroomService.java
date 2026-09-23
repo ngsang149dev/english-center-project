@@ -36,11 +36,11 @@ public class ClassroomService {
     }
 
     public ClassroomResponseDto updateTeacher(Long classroomId, Long newTeacherId) {
-        Classroom classroom = classroomRepository.findById(classroomId).orElseThrow(() -> new RuntimeException("Classroom not found"));
+        Classroom checkClassroom = classroomRepository.findById(classroomId).orElseThrow(() -> new RuntimeException("Classroom not found"));
         Teacher newTeacher = teacherRepository.findById(newTeacherId).orElseThrow(() -> new  RuntimeException("Teacher not found"));
 
-        classroom.setTeacher(newTeacher);
-        Classroom updated = classroomRepository.save(classroom);
+        checkClassroom.setTeacher(newTeacher);
+        Classroom updated = classroomRepository.save(checkClassroom);
         return toDto(updated);
     }
 }
