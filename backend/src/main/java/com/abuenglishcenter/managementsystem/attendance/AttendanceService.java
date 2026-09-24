@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.abuenglishcenter.managementsystem.classroom.ClassSession;
 import com.abuenglishcenter.managementsystem.classroom.ClassSessionRepository;
@@ -26,6 +27,7 @@ public class AttendanceService {
         return attendanceRepository.findAll().stream().map(this::toDto).toList();
     }
 
+    @Transactional 
     public List<AttendanceResponseDto> createAttendance(AttendanceCreateRequestDto request) {
         ClassSession checkSession = classSessionRepository.findById(request.getSessionId()).orElseThrow(() -> new RuntimeException("Class session not found"));
 

@@ -3,6 +3,7 @@ package com.abuenglishcenter.managementsystem.teacher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.abuenglishcenter.managementsystem.user.Role;
 import com.abuenglishcenter.managementsystem.user.User;
@@ -25,6 +26,7 @@ public class TeacherService {
         return teacherRepository.findAll().stream().map(this::toDto).toList();
     }
 
+    @Transactional 
     public TeacherResponseDto createTeacher(TeacherCreateRequestDto request) {
         // TODO user builder pattern
         User newUser = new User();

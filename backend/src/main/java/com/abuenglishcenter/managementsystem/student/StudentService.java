@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.abuenglishcenter.managementsystem.user.Role;
 import com.abuenglishcenter.managementsystem.user.User;
@@ -26,6 +27,7 @@ public class StudentService {
         return studentRepository.findAll().stream().map(this::toDto).toList();
     }
 
+    @Transactional 
     public StudentResponseDto createStudent(StudentCreateRequestDto request) {
         User newUser = new User();
         newUser.setUsername(request.getUsername());
