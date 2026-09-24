@@ -1,0 +1,119 @@
+erDiagram
+  USERS ||--o| TEACHERS : "is a"
+  USERS ||--o| STUDENTS : "is a"
+  TEACHERS ||--o{ CLASSES : teaches
+  CLASSES ||--o{ CLASS_SCHEDULES : has
+  CLASSES ||--o{ CLASS_SESSIONS : has
+  CLASSES ||--o{ CLASS_FEE_HISTORY : has_fee
+  CLASSES ||--o{ ENROLLMENTS : contains
+  STUDENTS ||--o{ ENROLLMENTS : joins
+  ENROLLMENTS ||--o{ ATTENDANCE : tracked_in
+  CLASS_SESSIONS ||--o{ ATTENDANCE : recorded_at
+  ENROLLMENTS ||--o{ INVOICES : billed_as
+  INVOICES ||--o{ PAYMENTS : paid_by
+  TEACHERS ||--o{ TEACHER_RATES : has_rate
+  CLASSES ||--o{ TEACHER_RATES : rate_for
+  TEACHERS ||--o{ TEACHER_PAYROLLS : paid_via
+  TEACHER_PAYROLLS ||--o{ PAYROLL_DETAILS : breaks_down
+  CLASSES ||--o{ PAYROLL_DETAILS : contributes_to
+
+  USERS {
+    bigint id PK
+    string username
+    string password
+    enum role
+    string full_name
+  }
+  TEACHERS {
+    bigint id PK
+    bigint user_id FK
+    string specialization
+    string phone
+  }
+  STUDENTS {
+    bigint id PK
+    bigint user_id FK
+    string parent_phone
+    string status
+    string evaluation_sheet_url
+  }
+  CLASSES {
+    bigint id PK
+    string name
+    bigint teacher_id FK
+    string curriculum_sheet_url
+  }
+  CLASS_FEE_HISTORY {
+    bigint id PK
+    bigint class_id FK
+    decimal monthly_fee
+    date effective_from
+    date effective_to
+  }
+  CLASS_SCHEDULES {
+    bigint id PK
+    bigint class_id FK
+    string day_of_week
+    time start_time
+  }
+  CLASS_SESSIONS {
+    bigint id PK
+    bigint class_id FK
+    date session_date
+    boolean teacher_taught
+  }
+  ENROLLMENTS {
+    bigint id PK
+    bigint student_id FK
+    bigint class_id FK
+    string status
+  }
+  ATTENDANCE {
+    bigint id PK
+    bigint enrollment_id FK
+    bigint session_id FK
+    string status
+  }
+  INVOICES {
+    bigint id PK
+    bigint enrollment_id FK
+    int month
+    int year
+    decimal amount
+    decimal adjusted_amount
+    string status
+  }
+  PAYMENTS {
+    bigint id PK
+    bigint invoice_id FK
+    decimal amount
+    date payment_date
+    enum payment_method
+  }
+  TEACHER_RATES {
+    bigint id PK
+    bigint teacher_id FK
+    bigint class_id FK
+    decimal rate_per_session
+    date effective_from
+  }
+  TEACHER_PAYROLLS {
+    bigint id PK
+    bigint teacher_id FK
+    int month
+    decimal bonus
+    decimal total_pay
+    boolean is_manually_adjusted
+  }
+  PAYROLL_DETAILS {
+    bigint id PK
+    bigint payroll_id FK
+    bigint class_id FK
+    decimal subtotal
+  }
+  EXPENSES {
+    bigint id PK
+    string category
+    decimal amount
+    date expense_date
+  }
