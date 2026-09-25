@@ -1,0 +1,36 @@
+package com.abuenglishcenter.managementsystem.billing;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController 
+@RequestMapping("/invoices")
+public class InvoiceController {
+
+    @Autowired 
+    private InvoiceService invoiceService;
+
+    @GetMapping 
+    public List<InvoiceResponseDto> getAllInvoices() {
+        return invoiceService.getAllInvoices();
+    }
+
+    @PostMapping
+    public InvoiceResponseDto createInvoice(@RequestBody InvoiceCreateRequestDto request) {
+        return invoiceService.createInvoice(request);
+    }
+
+    @PutMapping("/{id}/amount")
+    public InvoiceResponseDto updateAdjustedAmount(@PathVariable Long id, @RequestBody BigDecimal amount) {
+        return invoiceService.updateAdjustedAmount(id, amount);
+    }
+}
