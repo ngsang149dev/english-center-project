@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.abuenglishcenter.managementsystem.enrollment.Enrollment;
 import com.abuenglishcenter.managementsystem.enrollment.EnrollmentRepository;
@@ -17,6 +18,9 @@ public class InvoiceService {
 
     @Autowired 
     private EnrollmentRepository enrollmentRepository;
+
+    @Autowired 
+    private PaymentRepository paymentRepository;
 
     public List<InvoiceResponseDto> getAllInvoices() {
         return invoiceRepository.findAll().stream().map(this::toDto).toList();
@@ -37,13 +41,27 @@ public class InvoiceService {
         return toDto(saved);
     }
 
-    public InvoiceResponseDto updateAdjustedAmount(Long id, BigDecimal amount) {
+    @Transactional 
+    public InvoiceResponseDto updateAdjustedAmount(Long id, BigDecimal newAmount) {
         Invoice checkInvoice = invoiceRepository.findById(id).orElseThrow(() -> new RuntimeException("Invoice not found"));
 
-        checkInvoice.setAdjustedAmount(amount);
+        checkInvoice.setAdjustedAmount(newAmount);
+        recalculateInvoiceStatus(checkInvoice);
+        return toDto(checkInvoice);
+    }
 
-        Invoice updated = invoiceRepository.save(checkInvoice);
-        return toDto(updated);
+    public  void recalculateInvoiceStatus(Invoice invoice) {
+        List<Payment> validPayments = paymentRepository.findByInvoiceIdAndCancelledFalse(invoice.getId());
+        
+        BigDecimal totalPaid = validPayments.stream().map(payment -> payment.getAmount()).reduce(BigDecimal.ZERO, (total, amount) -> total.add(amount));
+        if (totalPaid.compareTo(invoice.getAdjustedAmount()) >= 0) {
+            invoice.setStatus(Status.PAID);
+        } else if (totalPaid.compareTo(BigDecimal.ZERO) > 0) {
+            invoice.setStatus(Status.PARTIALLY_PAID);
+        } else {
+            invoice.setStatus(Status.UNPAID);
+        }
+        invoiceRepository.save(invoice);
     }
 
     private InvoiceResponseDto toDto(Invoice invoice) {

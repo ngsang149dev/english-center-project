@@ -16,6 +16,9 @@ public class PaymentService {
     @Autowired 
     private InvoiceRepository invoiceRepository;
 
+    @Autowired 
+    private InvoiceService invoiceService;
+
     public List<PaymentResponseDto> getAllPayments() {
         return paymentRepository.findAll().stream().map(this::toDto).toList();
     }
@@ -31,32 +34,21 @@ public class PaymentService {
         newPayment.setPaymentMethod(request.getPaymentMethod());
         Payment saved = paymentRepository.save(newPayment);
 
-        recalculateInvoiceStatus(checkInvoice);
+        invoiceService.recalculateInvoiceStatus(checkInvoice);
         return toDto(saved);
     }
 
+    @Transactional 
     public PaymentResponseDto cancelPayment(Long paymentId) {
         Payment checkPayment = paymentRepository.findById(paymentId).orElseThrow(() -> new RuntimeException("Payment not found"));
 
         checkPayment.setCancelled(true);
         Payment updated = paymentRepository.save(checkPayment);
-        recalculateInvoiceStatus(checkPayment.getInvoice());
+        invoiceService.recalculateInvoiceStatus(checkPayment.getInvoice());
         return toDto(updated);
     }
 
-    private void recalculateInvoiceStatus(Invoice invoice) {
-        List<Payment> validPayments = paymentRepository.findByInvoiceIdAndCancelledFalse(invoice.getId());
-        
-        BigDecimal totalPaid = validPayments.stream().map(payment -> payment.getAmount()).reduce(BigDecimal.ZERO, (total, amount) -> total.add(amount));
-        if (totalPaid.compareTo(invoice.getAdjustedAmount()) >= 0) {
-            invoice.setStatus(Status.PAID);
-        } else if (totalPaid.compareTo(BigDecimal.ZERO) > 0) {
-            invoice.setStatus(Status.PARTIALLY_PAID);
-        } else {
-            invoice.setStatus(Status.UNPAID);
-        }
-        invoiceRepository.save(invoice);
-    }
+    
 
     private PaymentResponseDto toDto(Payment payment) {
         return new PaymentResponseDto(payment.getId(), payment.getInvoice().getId(), payment.getAmount(), payment.getPaymentDate(), payment.getPaymentMethod(), payment.isCancelled());
