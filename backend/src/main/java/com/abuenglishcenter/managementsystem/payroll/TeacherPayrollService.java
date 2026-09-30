@@ -53,7 +53,8 @@ public class TeacherPayrollService {
         // Filtering for spec teacher
         List<ClassSession> teacherSessions = allSessions.stream()
                 .filter(s -> s.getClassroom().getTeacher().getId().equals(checkTeacher.getId())).toList();
-
+                
+        // Get number of taught sessions
         Map<Classroom, Long> sessionsPerClass = teacherSessions.stream()
                 .collect(Collectors.groupingBy(ClassSession::getClassroom, Collectors.counting()));
 
