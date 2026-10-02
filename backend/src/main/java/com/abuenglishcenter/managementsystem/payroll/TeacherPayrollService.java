@@ -3,9 +3,9 @@ package com.abuenglishcenter.managementsystem.payroll;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.abuenglishcenter.managementsystem.classroom.ClassSession;
 import com.abuenglishcenter.managementsystem.classroom.ClassSessionRepository;
-import com.abuenglishcenter.managementsystem.classroom.Classroom;
+import com.abuenglishcenter.managementsystem.exception.BusinessRuleException;
 import com.abuenglishcenter.managementsystem.teacher.Teacher;
 import com.abuenglishcenter.managementsystem.teacher.TeacherRepository;
 
@@ -43,20 +43,17 @@ public class TeacherPayrollService {
         Teacher checkTeacher = teacherRepository.findById(request.getTeacherId())
                 .orElseThrow(() -> new RuntimeException("Teacher not found"));
 
+        if (teacherPayrollRepository.existsByTeacherIdAndMonthAndYear(
+                checkTeacher.getId(), request.getMonth(), request.getYear())) {
+            throw new BusinessRuleException("Teacher " + checkTeacher.getUser().getFullName()
+                    + " has already have monthly payroll " + request.getMonth() + "/" + request.getYear() + ".");
+        }
+
         LocalDate startDate = LocalDate.of(request.getYear(), request.getMonth(), 1);
         LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
 
-        // Get all taught sessions in a month
-        List<ClassSession> allSessions = classSessionRepository.findByTeacherTaughtTrueAndSessionDateBetween(startDate,
-                endDate);
-
-        // Filtering for spec teacher
-        List<ClassSession> teacherSessions = allSessions.stream()
-                .filter(s -> s.getClassroom().getTeacher().getId().equals(checkTeacher.getId())).toList();
-                
-        // Get number of taught sessions
-        Map<Classroom, Long> sessionsPerClass = teacherSessions.stream()
-                .collect(Collectors.groupingBy(ClassSession::getClassroom, Collectors.counting()));
+        List<ClassSession> teacherSessions = classSessionRepository
+                .findByTeacherIdAndTeacherTaughtTrueAndSessionDateBetween(checkTeacher.getId(), startDate, endDate);
 
         // Creating new a new payroll first
         TeacherPayroll newPayroll = new TeacherPayroll();
@@ -67,30 +64,39 @@ public class TeacherPayrollService {
         newPayroll.setStatus(PayrollStatus.DRAFT);
         newPayroll.setManuallyAdjusted(false);
 
-        BigDecimal sessionPay = BigDecimal.ZERO;
-        List<PayrollDetail> details = new ArrayList<>();
+        Map<GroupKey, PayrollDetail> detailMap = new LinkedHashMap<>();
 
-        for (Map.Entry<Classroom, Long> entry : sessionsPerClass.entrySet()) {
-            Classroom classroom = entry.getKey();
-            int sessionsTaught = entry.getValue().intValue();
+        for (ClassSession s : teacherSessions) {
+            Long classroomId = s.getClassroom().getId();
 
-            // Find activating rate
             TeacherRate rate = teacherRateRepository
-                    .findByTeacherIdAndClassroomIdAndEffectiveToIsNull(checkTeacher.getId(), classroom.getId())
-                    .orElseThrow(() -> new RuntimeException("No active rate found for teacher " + checkTeacher.getId()
-                            + " and classroom " + classroom.getId()));
+                    .findEffectiveRate(checkTeacher.getId(), classroomId, s.getSessionDate())
+                    .orElseThrow(() -> new BusinessRuleException(
+                            "There is no set salary level for " + checkTeacher.getUser().getFullName()
+                                    + " at class " + s.getClassroom().getName()
+                                    + " in date " + s.getSessionDate()
+                                    + ". Set up salary rates before calculating salaries."));
 
-            BigDecimal rateApplied = rate.getRatePerSession();
-            BigDecimal subtotal = rateApplied.multiply(BigDecimal.valueOf(sessionsTaught));
+            GroupKey key = new GroupKey(classroomId, rate.getId());
 
-            PayrollDetail newDetail = new PayrollDetail();
-            newDetail.setPayroll(newPayroll);
-            newDetail.setClassroom(classroom);
-            newDetail.setSessionsTaught(sessionsTaught);
-            newDetail.setRateApplied(rateApplied);
-            newDetail.setSubtotal(subtotal);
+            PayrollDetail newDetail = detailMap.computeIfAbsent(key, k -> {
+                PayrollDetail d = new PayrollDetail();
+                d.setPayroll(newPayroll);
+                d.setClassroom(s.getClassroom());
+                d.setRateApplied(rate.getRatePerSession());
+                d.setSessionsTaught(0);
+                return d;
+            });
 
-            details.add(newDetail);
+            newDetail.setSessionsTaught(newDetail.getSessionsTaught() + 1);
+        }
+
+        BigDecimal sessionPay = BigDecimal.ZERO;
+        List<PayrollDetail> details = new ArrayList<>(detailMap.values());
+
+        for (PayrollDetail d : details) {
+            BigDecimal subtotal = d.getRateApplied().multiply(BigDecimal.valueOf(d.getSessionsTaught()));
+            d.setSubtotal(subtotal);
             sessionPay = sessionPay.add(subtotal);
         }
 
@@ -127,6 +133,9 @@ public class TeacherPayrollService {
 
         TeacherPayroll updatedStatus = teacherPayrollRepository.save(checkPayroll);
         return toDtoWithDetails(updatedStatus);
+    }
+
+    public record GroupKey(Long classroomId, Long rateId) {
     }
 
     private TeacherPayrollResponseDto toDtoWithDetails(TeacherPayroll payroll) {

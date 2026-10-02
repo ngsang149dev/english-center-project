@@ -13,9 +13,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 @Entity 
-@Table(name = "teacher_payrolls")
+@Table(name = "teacher_payrolls", uniqueConstraints = @UniqueConstraint(columnNames = {"teacher_id", "month", "year"}))
 public class TeacherPayroll {
     @Id 
     @GeneratedValue(strategy = GenerationType.IDENTITY)

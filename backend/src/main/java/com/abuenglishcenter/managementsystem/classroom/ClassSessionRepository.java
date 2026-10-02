@@ -6,5 +6,5 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ClassSessionRepository extends JpaRepository<ClassSession, Long> {
-    List<ClassSession> findByTeacherTaughtTrueAndSessionDateBetween(LocalDate start, LocalDate end);
+    List<ClassSession> findByTeacherIdAndTeacherTaughtTrueAndSessionDateBetween(Long teacherId,LocalDate start, LocalDate end);
 }

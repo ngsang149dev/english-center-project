@@ -2,6 +2,8 @@ package com.abuenglishcenter.managementsystem.classroom;
 
 import java.time.LocalDate;
 
+import com.abuenglishcenter.managementsystem.teacher.Teacher;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -25,6 +27,11 @@ public class ClassSession {
     private LocalDate sessionDate;
 
     private boolean teacherTaught;
+
+    @ManyToOne 
+    @JoinColumn(name = "teacher_id", nullable = false)
+    private Teacher teacher;
+
 
     public Long getId() {
         return id;
@@ -56,6 +63,14 @@ public class ClassSession {
 
     public void setTeacherTaught(boolean teacherTaught) {
         this.teacherTaught = teacherTaught;
+    }
+
+    public Teacher getTeacher() {
+        return teacher;
+    }
+
+    public void setTeacher(Teacher teacher) {
+        this.teacher = teacher;
     }
 
 
