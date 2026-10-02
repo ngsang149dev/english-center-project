@@ -46,7 +46,7 @@ public class TeacherPayrollService {
         if (teacherPayrollRepository.existsByTeacherIdAndMonthAndYear(
                 checkTeacher.getId(), request.getMonth(), request.getYear())) {
             throw new BusinessRuleException("Teacher " + checkTeacher.getUser().getFullName()
-                    + " has already have monthly payroll " + request.getMonth() + "/" + request.getYear() + ".");
+                    + " already has a payroll for " + request.getMonth() + "/" + request.getYear() + ".");
         }
 
         LocalDate startDate = LocalDate.of(request.getYear(), request.getMonth(), 1);
@@ -55,6 +55,12 @@ public class TeacherPayrollService {
         List<ClassSession> teacherSessions = classSessionRepository
                 .findByTeacherIdAndTeacherTaughtTrueAndSessionDateBetween(checkTeacher.getId(), startDate, endDate);
 
+        if (teacherSessions.isEmpty()) {
+            throw new BusinessRuleException("Teacher " + checkTeacher.getUser().getFullName()
+                    + " has no taught sessions in " + request.getMonth() + "/" + request.getYear()
+                    + ". Record the sessions before creating the payroll.");
+        }
+        
         // Creating new a new payroll first
         TeacherPayroll newPayroll = new TeacherPayroll();
         newPayroll.setTeacher(checkTeacher);
@@ -135,7 +141,7 @@ public class TeacherPayrollService {
         return toDtoWithDetails(updatedStatus);
     }
 
-    public record GroupKey(Long classroomId, Long rateId) {
+    private record GroupKey(Long classroomId, Long rateId) {
     }
 
     private TeacherPayrollResponseDto toDtoWithDetails(TeacherPayroll payroll) {

@@ -29,6 +29,11 @@ public class ClassSessionController {
         return classSessionService.createClassSession(request);
     }
 
+    @PutMapping("{id}/teacher") 
+    public ClassSessionResponseDto updateTeacher(@PathVariable Long id, @RequestBody Long newTeacherId) {
+        return classSessionService.updateTeacher(id, newTeacherId);
+    }
+
     @PutMapping("/{id}")
     public ClassSessionResponseDto updateIsTaught(@PathVariable Long id, @RequestBody boolean isTaught) {
         return classSessionService.updateIsTaught(id, isTaught);
