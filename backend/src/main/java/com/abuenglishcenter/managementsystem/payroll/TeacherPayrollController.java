@@ -4,12 +4,15 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController 
@@ -36,5 +39,17 @@ public class TeacherPayrollController {
     @PutMapping("/{id}/status")
     public TeacherPayrollResponseDto updateStatus(@PathVariable Long id, @RequestBody PayrollStatus newStatus) {
         return teacherPayrollService.updateStatus(id, newStatus);
+    }
+
+    @PostMapping("/{id}/recalculate")
+    public TeacherPayrollResponseDto recalculate(@PathVariable Long id) {
+        return teacherPayrollService.recalculate(id);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteTeacherPayroll(@PathVariable Long id) {
+        teacherPayrollService.deleteTeacherPayroll(id);
+
     }
 }
