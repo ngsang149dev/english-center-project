@@ -195,6 +195,11 @@ public class TeacherPayrollService {
             throw new BusinessRuleException("Cannot change payroll status from "
                     + checkPayroll.getStatus() + " to " + newStatus + ".");
         }
+
+        if (checkPayroll.getStatus() == PayrollStatus.DRAFT && newStatus == PayrollStatus.CONFIRMED) {
+            recalculate(id);
+        }
+        
         checkPayroll.setStatus(newStatus);
 
         TeacherPayroll updatedStatus = teacherPayrollRepository.save(checkPayroll);

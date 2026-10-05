@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.abuenglishcenter.managementsystem.exception.BusinessRuleException;
+import com.abuenglishcenter.managementsystem.payroll.PayrollStatus;
 import com.abuenglishcenter.managementsystem.payroll.TeacherPayrollRepository;
 import com.abuenglishcenter.managementsystem.teacher.Teacher;
 import com.abuenglishcenter.managementsystem.teacher.TeacherRepository;
@@ -47,6 +48,10 @@ public class ClassSessionService {
                     .orElseThrow(() -> new RuntimeException("Teacher not found"));
         }
 
+        if (request.isTeacherTaught()) {
+            ensureNotLocked(teacher, request.getSessionDate());
+        }
+
         ClassSession newClassSession = new ClassSession();
         newClassSession.setClassroom(checkClassroom);
         newClassSession.setTeacher(teacher);
@@ -63,8 +68,8 @@ public class ClassSessionService {
         Teacher checkTeacher = teacherRepository.findById(newTeacherId).orElseThrow(() -> new RuntimeException("Teacher not found"));
 
         if (checkClassSession.isTeacherTaught()) {
-            ensureNoPayroll(checkClassSession.getTeacher(), checkClassSession.getSessionDate());
-            ensureNoPayroll(checkTeacher, checkClassSession.getSessionDate());
+            ensureNotLocked(checkClassSession.getTeacher(), checkClassSession.getSessionDate());
+            ensureNotLocked(checkTeacher, checkClassSession.getSessionDate());
         }
 
         checkClassSession.setTeacher(checkTeacher);
@@ -76,22 +81,23 @@ public class ClassSessionService {
         ClassSession checkSession = classSessionRepository.findById(sessionId)
                 .orElseThrow(() -> new RuntimeException("Class session not found"));
 
-        ensureNoPayroll(checkSession.getTeacher(), checkSession.getSessionDate());
+        ensureNotLocked(checkSession.getTeacher(), checkSession.getSessionDate());
 
         checkSession.setTeacherTaught(isTaught);
         ClassSession updated = classSessionRepository.save(checkSession);
         return toDto(updated);
     }
 
-    private void ensureNoPayroll(Teacher teacher, LocalDate sessionDate) {
+    private void ensureNotLocked(Teacher teacher, LocalDate sessionDate) {
         int month = sessionDate.getMonthValue();
         int year = sessionDate.getYear();
 
-        if (teacherPayrollRepository.existsByTeacherIdAndMonthAndYear(teacher.getId(), month, year)) {
-            throw new BusinessRuleException("Teacher " + teacher.getUser().getFullName()
-                + " already has a payroll for " + month + "/" + year
-                + ", so this session can no longer be changed.");
-        }
+        teacherPayrollRepository.findByTeacherIdAndMonthAndYear(teacher.getId(), month, year)
+        .filter(p -> p.getStatus() != PayrollStatus.DRAFT).ifPresent(p -> {
+            throw new BusinessRuleException("Payroll of " + teacher.getUser().getFullName()
+                        + " for " + month + "/" + year + " is " + p.getStatus()
+                        + " and locked, so its sessions can no longer be changed.");
+        });
     }
 
     private ClassSessionResponseDto toDto(ClassSession classSession) {

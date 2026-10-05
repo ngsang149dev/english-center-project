@@ -42,8 +42,8 @@ public class TeacherPayrollController {
     }
 
     @PostMapping("/{id}/recalculate")
-    public TeacherPayrollResponseDto recalculate(Long payrollId) {
-        return teacherPayrollService.recalculate(payrollId);
+    public TeacherPayrollResponseDto recalculate(@PathVariable Long id) {
+        return teacherPayrollService.recalculate(id);
     }
 
     @DeleteMapping("/{id}")
