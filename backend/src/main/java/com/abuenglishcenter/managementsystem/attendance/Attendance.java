@@ -30,7 +30,7 @@ public class Attendance {
     private ClassSession session;
 
     @Enumerated(EnumType.STRING)
-    private Status status;
+    private AttendanceStatus status;
 
     public Long getId() {
         return id;
@@ -56,11 +56,11 @@ public class Attendance {
         this.session = session;
     }
 
-    public Status getStatus() {
+    public AttendanceStatus getStatus() {
         return status;
     }
 
-    public void setStatus(Status status) {
+    public void setStatus(AttendanceStatus status) {
         this.status = status;
     }
 

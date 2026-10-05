@@ -1,5 +1,5 @@
 package com.abuenglishcenter.managementsystem.student;
 
-public enum Status {
+public enum StudentStatus {
     ACTIVE, INACTIVE, ALUMNI
 }

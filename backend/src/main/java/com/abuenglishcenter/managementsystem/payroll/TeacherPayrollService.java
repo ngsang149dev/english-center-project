@@ -129,6 +129,8 @@ public class TeacherPayrollService {
     public TeacherPayrollResponseDto updateStatus(Long id, PayrollStatus newStatus) {
         TeacherPayroll checkPayroll = teacherPayrollRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Payroll not found"));
+
+        
         checkPayroll.setStatus(newStatus);
 
         TeacherPayroll updatedStatus = teacherPayrollRepository.save(checkPayroll);

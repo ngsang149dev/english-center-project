@@ -34,7 +34,7 @@ public class Enrollment {
     private LocalDate enrolledDate;
 
     @Enumerated(EnumType.STRING)
-    private Status status;
+    private EnrollmentStatus status;
 
     public Long getId() {
         return id;
@@ -68,11 +68,11 @@ public class Enrollment {
         this.enrolledDate = enrolledDate;
     }
 
-    public Status getStatus() {
+    public EnrollmentStatus getStatus() {
         return status;
     }
 
-    public void setStatus(Status status) {
+    public void setStatus(EnrollmentStatus status) {
         this.status = status;
     }
 

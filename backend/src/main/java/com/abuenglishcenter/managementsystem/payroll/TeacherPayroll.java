@@ -1,6 +1,7 @@
 package com.abuenglishcenter.managementsystem.payroll;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 import com.abuenglishcenter.managementsystem.teacher.Teacher;
 
@@ -32,6 +33,15 @@ public class TeacherPayroll {
     private boolean isManuallyAdjusted = false;
     private Integer month;
     private Integer year;
+    private LocalDate paidDate;
+
+    public LocalDate getPaidDate() {
+        return paidDate;
+    }
+
+    public void setPaidDate(LocalDate paidDate) {
+        this.paidDate = paidDate;
+    }
 
     @Enumerated(EnumType.STRING)
     private PayrollStatus status = PayrollStatus.DRAFT;

@@ -1,5 +1,5 @@
 package com.abuenglishcenter.managementsystem.enrollment;
 
-public enum Status {
+public enum EnrollmentStatus {
     ACTIVE, WITHDRAWN, COMPLETED
 }

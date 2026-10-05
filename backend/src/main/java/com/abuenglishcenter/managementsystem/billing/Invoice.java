@@ -31,7 +31,7 @@ public class Invoice {
     private BigDecimal adjustedAmount;
 
     @Enumerated(EnumType.STRING)
-    private Status status;
+    private InvoiceStatus status;
 
     public Long getId() {
         return id;
@@ -69,10 +69,10 @@ public class Invoice {
     public void setAdjustedAmount(BigDecimal adjustedAmount) {
         this.adjustedAmount = adjustedAmount;
     }
-    public Status getStatus() {
+    public InvoiceStatus getStatus() {
         return status;
     }
-    public void setStatus(Status status) {
+    public void setStatus(InvoiceStatus status) {
         this.status = status;
     }
 

@@ -40,7 +40,7 @@ public class StudentService {
         newStudent.setUser(savedUser);
         newStudent.setParentPhone(request.getParentPhone());
         newStudent.setDateOfBirth(request.getDateOfBirth());
-        newStudent.setStatus(Status.ACTIVE);
+        newStudent.setStatus(StudentStatus.ACTIVE);
         Student savedStudent = studentRepository.save(newStudent);
 
         return toDto(savedStudent);

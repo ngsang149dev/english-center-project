@@ -8,10 +8,10 @@ public class EnrollmentResponseDto {
     private Long studentId;
     private Long classId;
     private LocalDate enrolledDate;
-    private Status status;
+    private EnrollmentStatus status;
 
     
-    public EnrollmentResponseDto(Long id, Long studentId, Long classId, LocalDate enrolledDate, Status status) {
+    public EnrollmentResponseDto(Long id, Long studentId, Long classId, LocalDate enrolledDate, EnrollmentStatus status) {
         this.id = id;
         this.studentId = studentId;
         this.classId = classId;
@@ -31,7 +31,7 @@ public class EnrollmentResponseDto {
     public LocalDate getEnrolledDate() {
         return enrolledDate;
     }
-    public Status getStatus() {
+    public EnrollmentStatus getStatus() {
         return status;
     }
 

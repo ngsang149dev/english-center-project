@@ -22,7 +22,7 @@ public class Student {
     private LocalDate dateOfBirth;
 
     @Enumerated(EnumType.STRING)
-    private Status status;
+    private StudentStatus status;
 
     private String evaluationSheetUrl;
 
@@ -66,11 +66,11 @@ public class Student {
         this.dateOfBirth = dateOfBirth;
     }
 
-    public Status getStatus() {
+    public StudentStatus getStatus() {
         return status;
     }
 
-    public void setStatus(Status status) {
+    public void setStatus(StudentStatus status) {
         this.status = status;
     }
 

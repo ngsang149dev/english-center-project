@@ -9,10 +9,10 @@ public class InvoiceResponseDto {
     private Integer year;
     private BigDecimal amount;
     private BigDecimal adjustedAmount;
-    private Status status;
+    private InvoiceStatus status;
 
     public InvoiceResponseDto(Long id, Long enrollmentId, Integer month, Integer year, BigDecimal amount,
-            BigDecimal adjustedAmount, Status status) {
+            BigDecimal adjustedAmount, InvoiceStatus status) {
         this.id = id;
         this.enrollmentId = enrollmentId;
         this.month = month;
@@ -40,7 +40,7 @@ public class InvoiceResponseDto {
     public BigDecimal getAdjustedAmount() {
         return adjustedAmount;
     }
-    public Status getStatus() {
+    public InvoiceStatus getStatus() {
         return status;
     }
 

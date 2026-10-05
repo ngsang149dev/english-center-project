@@ -35,7 +35,7 @@ public class InvoiceService {
         newInvoice.setYear(request.getYear());
         newInvoice.setAmount(request.getAmount());
         newInvoice.setAdjustedAmount(request.getAmount());
-        newInvoice.setStatus(Status.UNPAID);
+        newInvoice.setStatus(InvoiceStatus.UNPAID);
         
         Invoice saved = invoiceRepository.save(newInvoice);
         return toDto(saved);
@@ -55,11 +55,11 @@ public class InvoiceService {
         
         BigDecimal totalPaid = validPayments.stream().map(payment -> payment.getAmount()).reduce(BigDecimal.ZERO, (total, amount) -> total.add(amount));
         if (totalPaid.compareTo(invoice.getAdjustedAmount()) >= 0) {
-            invoice.setStatus(Status.PAID);
+            invoice.setStatus(InvoiceStatus.PAID);
         } else if (totalPaid.compareTo(BigDecimal.ZERO) > 0) {
-            invoice.setStatus(Status.PARTIALLY_PAID);
+            invoice.setStatus(InvoiceStatus.PARTIALLY_PAID);
         } else {
-            invoice.setStatus(Status.UNPAID);
+            invoice.setStatus(InvoiceStatus.UNPAID);
         }
         invoiceRepository.save(invoice);
     }

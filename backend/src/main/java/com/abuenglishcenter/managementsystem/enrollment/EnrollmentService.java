@@ -34,7 +34,7 @@ public class EnrollmentService {
         newEnrollment.setStudent(checkStudent);
         newEnrollment.setClassroom(checkClassroom);
         newEnrollment.setEnrolledDate(request.getEnrolledDate());
-        newEnrollment.setStatus(Status.ACTIVE);
+        newEnrollment.setStatus(EnrollmentStatus.ACTIVE);
 
         Enrollment saved = enrollmentRepository.save(newEnrollment);
         return toDto(saved);

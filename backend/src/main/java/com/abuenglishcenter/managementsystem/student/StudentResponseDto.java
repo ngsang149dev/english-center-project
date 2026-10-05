@@ -8,10 +8,10 @@ public class StudentResponseDto {
     private String fullName;
     private String parentPhone;
     private LocalDate dateOfBirth;
-    private Status status;
+    private StudentStatus status;
     private String evaluationSheetUrl;
 
-    public StudentResponseDto(Long id,String username, String fullName, String parentPhone, LocalDate dateOfBirth, Status status, String evaluationSheetUrl) {
+    public StudentResponseDto(Long id,String username, String fullName, String parentPhone, LocalDate dateOfBirth, StudentStatus status, String evaluationSheetUrl) {
         this.id = id;
         this.username = username;
         this.fullName = fullName;
@@ -41,7 +41,7 @@ public class StudentResponseDto {
         return dateOfBirth;
     }
 
-    public Status getStatus() {
+    public StudentStatus getStatus() {
         return status;
     }
 

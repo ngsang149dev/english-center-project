@@ -1,5 +1,5 @@
 package com.abuenglishcenter.managementsystem.attendance;
 
-public enum Status {
+public enum AttendanceStatus {
     PRESENT, ABSENT, LATE
 }
