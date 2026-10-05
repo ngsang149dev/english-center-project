@@ -38,41 +38,25 @@ public class TeacherPayrollService {
         return teacherPayrollRepository.findAll().stream().map(this::toDtoWithDetails).toList();
     }
 
-    @Transactional
-    public TeacherPayrollResponseDto createTeacherPayroll(TeacherPayrollCreateRequestDto request) {
-        Teacher checkTeacher = teacherRepository.findById(request.getTeacherId())
-                .orElseThrow(() -> new RuntimeException("Teacher not found"));
-
-        if (teacherPayrollRepository.existsByTeacherIdAndMonthAndYear(
-                checkTeacher.getId(), request.getMonth(), request.getYear())) {
-            throw new BusinessRuleException("Teacher " + checkTeacher.getUser().getFullName()
-                    + " has already have monthly payroll " + request.getMonth() + "/" + request.getYear() + ".");
-        }
-
-        LocalDate startDate = LocalDate.of(request.getYear(), request.getMonth(), 1);
+    private List<ClassSession> findTaughtSessions(Teacher teacher, int month, int year) {
+        LocalDate startDate = LocalDate.of(year, month, 1);
         LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
 
         List<ClassSession> teacherSessions = classSessionRepository
-                .findByTeacherIdAndTeacherTaughtTrueAndSessionDateBetween(checkTeacher.getId(), startDate, endDate);
+                .findByTeacherIdAndTeacherTaughtTrueAndSessionDateBetween(teacher.getId(), startDate, endDate);
+        return teacherSessions;
+    }
 
-        // Creating new a new payroll first
-        TeacherPayroll newPayroll = new TeacherPayroll();
-        newPayroll.setTeacher(checkTeacher);
-        newPayroll.setMonth(request.getMonth());
-        newPayroll.setYear(request.getYear());
-        newPayroll.setBonus(BigDecimal.ZERO);
-        newPayroll.setStatus(PayrollStatus.DRAFT);
-        newPayroll.setManuallyAdjusted(false);
-
+    private List<PayrollDetail> buildDetails(Teacher teacher, TeacherPayroll payroll, List<ClassSession> sessions) {
         Map<GroupKey, PayrollDetail> detailMap = new LinkedHashMap<>();
 
-        for (ClassSession s : teacherSessions) {
+        for (ClassSession s : sessions) {
             Long classroomId = s.getClassroom().getId();
 
             TeacherRate rate = teacherRateRepository
-                    .findEffectiveRate(checkTeacher.getId(), classroomId, s.getSessionDate())
+                    .findEffectiveRate(teacher.getId(), classroomId, s.getSessionDate())
                     .orElseThrow(() -> new BusinessRuleException(
-                            "There is no set salary level for " + checkTeacher.getUser().getFullName()
+                            "There is no set salary level for " + teacher.getUser().getFullName()
                                     + " at class " + s.getClassroom().getName()
                                     + " in date " + s.getSessionDate()
                                     + ". Set up salary rates before calculating salaries."));
@@ -81,7 +65,7 @@ public class TeacherPayrollService {
 
             PayrollDetail newDetail = detailMap.computeIfAbsent(key, k -> {
                 PayrollDetail d = new PayrollDetail();
-                d.setPayroll(newPayroll);
+                d.setPayroll(payroll);
                 d.setClassroom(s.getClassroom());
                 d.setRateApplied(rate.getRatePerSession());
                 d.setSessionsTaught(0);
@@ -91,14 +75,48 @@ public class TeacherPayrollService {
             newDetail.setSessionsTaught(newDetail.getSessionsTaught() + 1);
         }
 
-        BigDecimal sessionPay = BigDecimal.ZERO;
         List<PayrollDetail> details = new ArrayList<>(detailMap.values());
-
         for (PayrollDetail d : details) {
-            BigDecimal subtotal = d.getRateApplied().multiply(BigDecimal.valueOf(d.getSessionsTaught()));
-            d.setSubtotal(subtotal);
-            sessionPay = sessionPay.add(subtotal);
+            d.setSubtotal(d.getRateApplied().multiply(BigDecimal.valueOf(d.getSessionsTaught())));
         }
+        return details;
+    }
+
+    private BigDecimal sumTotals(List<PayrollDetail> details) {
+        return details.stream().map(PayrollDetail::getSubtotal).reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    @Transactional
+    public TeacherPayrollResponseDto createTeacherPayroll(TeacherPayrollCreateRequestDto request) {
+        Teacher checkTeacher = teacherRepository.findById(request.getTeacherId())
+                .orElseThrow(() -> new RuntimeException("Teacher not found"));
+
+        if (teacherPayrollRepository.existsByTeacherIdAndMonthAndYear(
+                checkTeacher.getId(), request.getMonth(), request.getYear())) {
+            throw new BusinessRuleException("Teacher " + checkTeacher.getUser().getFullName()
+                    + " already has a payroll for " + request.getMonth() + "/" + request.getYear() + ".");
+        }
+
+        List<ClassSession> sessions = findTaughtSessions(checkTeacher, request.getMonth(), request.getYear());
+
+        if (sessions.isEmpty()) {
+            throw new BusinessRuleException("Teacher " + checkTeacher.getUser().getFullName()
+                    + " has no taught sessions in " + request.getMonth() + "/" + request.getYear()
+                    + ". Record the sessions before creating the payroll.");
+        }
+
+        // Create a new payroll
+        TeacherPayroll newPayroll = new TeacherPayroll();
+        newPayroll.setTeacher(checkTeacher);
+        newPayroll.setMonth(request.getMonth());
+        newPayroll.setYear(request.getYear());
+        newPayroll.setBonus(BigDecimal.ZERO);
+        newPayroll.setStatus(PayrollStatus.DRAFT);
+        newPayroll.setManuallyAdjusted(false);
+
+        List<PayrollDetail> details = buildDetails(checkTeacher, newPayroll, sessions);
+
+        BigDecimal sessionPay = sumTotals(details);
 
         newPayroll.setSessionPay(sessionPay);
         newPayroll.setTotalPay(sessionPay);
@@ -113,11 +131,54 @@ public class TeacherPayrollService {
         return toDtoWithDetails(savedPayroll);
     }
 
+    private void requireDraft(TeacherPayroll payroll, String action) {
+        if (payroll.getStatus() != PayrollStatus.DRAFT) {
+            throw new BusinessRuleException("Payroll is " + payroll.getStatus()
+                    + " and cannot be " + action + ". Move it back to DRAFT first.");
+        }
+    }
+
+    @Transactional
+    public TeacherPayrollResponseDto recalculate(Long payrollId) {
+        TeacherPayroll checkPayroll = teacherPayrollRepository.findById(payrollId)
+                .orElseThrow(() -> new RuntimeException("Payroll not found"));
+
+        requireDraft(checkPayroll, "recalculated");
+
+        List<ClassSession> sessions = findTaughtSessions(checkPayroll.getTeacher(), checkPayroll.getMonth(),
+                checkPayroll.getYear());
+
+        List<PayrollDetail> newDetails = buildDetails(checkPayroll.getTeacher(), checkPayroll, sessions);
+        payrollDetailRepository.deleteByPayrollId(payrollId);
+
+        payrollDetailRepository.saveAll(newDetails);
+
+        BigDecimal sessionPay = sumTotals(newDetails);
+        checkPayroll.setSessionPay(sessionPay);
+        checkPayroll.setTotalPay(sessionPay.add(checkPayroll.getBonus()));
+
+        TeacherPayroll updated = teacherPayrollRepository.save(checkPayroll);
+        return toDtoWithDetails(updated);
+    }
+
+    @Transactional
+    public void deleteTeacherPayroll(Long id) {
+        TeacherPayroll checkPayroll = teacherPayrollRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Payroll not found"));
+        requireDraft(checkPayroll, "deleted");
+        payrollDetailRepository.deleteByPayrollId(id);
+        teacherPayrollRepository.delete(checkPayroll);
+    }
+
     @Transactional
     public TeacherPayrollResponseDto updateBonus(Long id, BigDecimal newBonus) {
         TeacherPayroll checkPayroll = teacherPayrollRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Payroll not found"));
 
+        requireDraft(checkPayroll, "given a bonus change");
+        if (newBonus.signum() < 0) {
+            throw new BusinessRuleException("Bonus must not be negative.");
+        }
         checkPayroll.setBonus(newBonus);
         checkPayroll.setManuallyAdjusted(true);
         checkPayroll.setTotalPay(newBonus.add(checkPayroll.getSessionPay()));
@@ -130,6 +191,14 @@ public class TeacherPayrollService {
         TeacherPayroll checkPayroll = teacherPayrollRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Payroll not found"));
 
+        if (!checkPayroll.getStatus().canMoveTo(newStatus)) {
+            throw new BusinessRuleException("Cannot change payroll status from "
+                    + checkPayroll.getStatus() + " to " + newStatus + ".");
+        }
+
+        if (checkPayroll.getStatus() == PayrollStatus.DRAFT && newStatus == PayrollStatus.CONFIRMED) {
+            recalculate(id);
+        }
         
         checkPayroll.setStatus(newStatus);
 
@@ -137,7 +206,7 @@ public class TeacherPayrollService {
         return toDtoWithDetails(updatedStatus);
     }
 
-    public record GroupKey(Long classroomId, Long rateId) {
+    private record GroupKey(Long classroomId, Long rateId) {
     }
 
     private TeacherPayrollResponseDto toDtoWithDetails(TeacherPayroll payroll) {
@@ -157,4 +226,5 @@ public class TeacherPayrollService {
                 payroll.getYear(), payroll.getSessionPay(), payroll.getBonus(), payroll.getTotalPay(),
                 payroll.isManuallyAdjusted(), payroll.getStatus(), detailDtos);
     }
+
 }
