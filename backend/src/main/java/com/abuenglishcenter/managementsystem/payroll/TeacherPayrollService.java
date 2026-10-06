@@ -177,9 +177,11 @@ public class TeacherPayrollService {
                 .orElseThrow(() -> new RuntimeException("Payroll not found"));
 
         requireDraft(checkPayroll, "given a bonus change");
+
         if (newBonus.signum() < 0) {
             throw new BusinessRuleException("Bonus must not be negative.");
         }
+        
         checkPayroll.setBonus(newBonus);
         checkPayroll.setManuallyAdjusted(true);
         checkPayroll.setTotalPay(newBonus.add(checkPayroll.getSessionPay()));

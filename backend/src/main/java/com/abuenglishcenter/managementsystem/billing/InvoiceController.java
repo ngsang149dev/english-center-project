@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController 
@@ -20,8 +21,13 @@ public class InvoiceController {
     private InvoiceService invoiceService;
 
     @GetMapping 
-    public List<InvoiceResponseDto> getAllInvoices() {
-        return invoiceService.getAllInvoices();
+    public List<InvoiceResponseDto> getInvoices(@RequestParam(required = false) Long studentId) {
+        return studentId == null ? invoiceService.getAllInvoices() : invoiceService.getInvoicesByStudent(studentId);
+    }
+
+    @GetMapping("/balance") 
+    public StudentBalanceResponseDto getStudentBalance(@RequestParam Long studentId) {
+        return invoiceService.getStudentBalance(studentId);
     }
 
     @PostMapping

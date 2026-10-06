@@ -1,59 +1,90 @@
 package com.abuenglishcenter.managementsystem.billing;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.abuenglishcenter.managementsystem.classroom.ClassFeeHistoryRepository;
 import com.abuenglishcenter.managementsystem.enrollment.Enrollment;
 import com.abuenglishcenter.managementsystem.enrollment.EnrollmentRepository;
+import com.abuenglishcenter.managementsystem.exception.BusinessRuleException;
+import com.abuenglishcenter.managementsystem.student.StudentRepository;
 
-@Service 
+@Service
 public class InvoiceService {
 
-    @Autowired 
+    @Autowired
     private InvoiceRepository invoiceRepository;
 
-    @Autowired 
+    @Autowired
     private EnrollmentRepository enrollmentRepository;
 
-    @Autowired 
+    @Autowired
     private PaymentRepository paymentRepository;
+
+    @Autowired
+    private ClassFeeHistoryRepository classFeeHistoryRepository;
+
+    @Autowired 
+    private StudentRepository studentRepository;
 
     public List<InvoiceResponseDto> getAllInvoices() {
         return invoiceRepository.findAll().stream().map(this::toDto).toList();
     }
 
     public InvoiceResponseDto createInvoice(InvoiceCreateRequestDto request) {
-        Enrollment checkEnrollment = enrollmentRepository.findById(request.getEnrollmentId()).orElseThrow(() -> new RuntimeException("Enrollment not found"));
+        Enrollment checkEnrollment = enrollmentRepository.findById(request.getEnrollmentId())
+                .orElseThrow(() -> new RuntimeException("Enrollment not found"));
+
+        if (invoiceRepository.existsByEnrollmentIdAndMonthAndYear(request.getEnrollmentId(), request.getMonth(),
+                request.getYear())) {
+            throw new BusinessRuleException(
+                    "Enrollment " + checkEnrollment.getId()
+                            + " already has an invoice for " + request.getMonth() + "/" + request.getYear() + ".");
+        }
+
+        BigDecimal amount = request.getAmount();
+
+        if (amount == null) {
+            LocalDate firstDay = LocalDate.of(request.getYear(), request.getMonth(), 1);
+            amount = classFeeHistoryRepository.findEffectiveFee(checkEnrollment.getClassroom().getId(), firstDay)
+                    .orElseThrow(() -> new BusinessRuleException(
+                            "Class " + checkEnrollment.getClassroom().getName()
+                                    + " has no tuition fee for " + request.getMonth() + "/" + request.getYear()))
+                    .getMonthlyFee();
+        }
 
         Invoice newInvoice = new Invoice();
         newInvoice.setEnrollment(checkEnrollment);
         newInvoice.setMonth(request.getMonth());
         newInvoice.setYear(request.getYear());
-        newInvoice.setAmount(request.getAmount());
-        newInvoice.setAdjustedAmount(request.getAmount());
+        newInvoice.setAmount(amount);
+        newInvoice.setAdjustedAmount(amount);
         newInvoice.setStatus(InvoiceStatus.UNPAID);
-        
+
         Invoice saved = invoiceRepository.save(newInvoice);
         return toDto(saved);
     }
 
-    @Transactional 
+    @Transactional
     public InvoiceResponseDto updateAdjustedAmount(Long id, BigDecimal newAmount) {
-        Invoice checkInvoice = invoiceRepository.findById(id).orElseThrow(() -> new RuntimeException("Invoice not found"));
+        Invoice checkInvoice = invoiceRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Invoice not found"));
 
         checkInvoice.setAdjustedAmount(newAmount);
         recalculateInvoiceStatus(checkInvoice);
         return toDto(checkInvoice);
     }
 
-    public  void recalculateInvoiceStatus(Invoice invoice) {
+    public void recalculateInvoiceStatus(Invoice invoice) {
         List<Payment> validPayments = paymentRepository.findByInvoiceIdAndCancelledFalse(invoice.getId());
-        
-        BigDecimal totalPaid = validPayments.stream().map(payment -> payment.getAmount()).reduce(BigDecimal.ZERO, (total, amount) -> total.add(amount));
+
+        BigDecimal totalPaid = validPayments.stream().map(payment -> payment.getAmount()).reduce(BigDecimal.ZERO,
+                (total, amount) -> total.add(amount));
         if (totalPaid.compareTo(invoice.getAdjustedAmount()) >= 0) {
             invoice.setStatus(InvoiceStatus.PAID);
         } else if (totalPaid.compareTo(BigDecimal.ZERO) > 0) {
@@ -64,7 +95,39 @@ public class InvoiceService {
         invoiceRepository.save(invoice);
     }
 
+    public List<InvoiceResponseDto> getInvoicesByStudent(Long studentId) {
+        ensureStudentExists(studentId);
+
+        return invoiceRepository.findByEnrollmentStudentId(studentId).stream().map(this::toDto).toList();
+    }
+
+    public StudentBalanceResponseDto getStudentBalance(Long studentId) {
+        ensureStudentExists(studentId);
+
+        BigDecimal billed = invoiceRepository.sumBilledByStudent(studentId);
+        BigDecimal paid = paymentRepository.sumValidByStudent(studentId);
+        return new StudentBalanceResponseDto(studentId, billed, paid);
+    } 
+
+    private void ensureStudentExists(Long studentId) {
+        if (!studentRepository.existsById(studentId)) throw new RuntimeException("Student not found");
+    }
+
     private InvoiceResponseDto toDto(Invoice invoice) {
-        return new InvoiceResponseDto(invoice.getId(), invoice.getEnrollment().getId(), invoice.getMonth(), invoice.getYear(), invoice.getAmount(), invoice.getAdjustedAmount(), invoice.getStatus());
+        BigDecimal paid = paymentRepository.sumValidByInvoice(invoice.getId());
+        BigDecimal remaining = invoice.getAdjustedAmount().subtract(paid);
+        Enrollment enrollment = invoice.getEnrollment();
+        return new InvoiceResponseDto(
+                invoice.getId(),
+                enrollment.getId(),
+                invoice.getMonth(),
+                invoice.getYear(),
+                invoice.getAmount(),
+                invoice.getAdjustedAmount(),
+                invoice.getStatus(),
+                paid,
+                remaining.max(BigDecimal.ZERO),
+                enrollment.getStudent().getUser().getFullName(),
+                enrollment.getClassroom().getName());
     }
 }

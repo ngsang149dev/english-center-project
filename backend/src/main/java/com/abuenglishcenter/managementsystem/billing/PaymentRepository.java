@@ -12,7 +12,14 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     List<Payment> findByInvoiceIdAndCancelledFalse(Long invoiceId);
 
     @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payment p " +
-       "WHERE p.cancelled = false " +
-       "AND p.paymentDate >= :startDate AND p.paymentDate <= :endDate")
-    BigDecimal sumValidPaymentsBetween(@Param("startDate")LocalDate startDate,@Param("endDate") LocalDate endDate);
+            "WHERE p.cancelled = false " +
+            "AND p.paymentDate >= :startDate AND p.paymentDate <= :endDate")
+    BigDecimal sumValidPaymentsBetween(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payment p WHERE p.cancelled = false AND p.invoice.id = :invoiceId")
+    BigDecimal sumValidByInvoice(@Param("invoiceId") Long invoiceId);
+
+    @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payment p WHERE p.cancelled = false " +
+            "AND p.invoice.enrollment.student.id = :studentId")
+    BigDecimal sumValidByStudent(@Param("studentId") Long studentId);
 }
