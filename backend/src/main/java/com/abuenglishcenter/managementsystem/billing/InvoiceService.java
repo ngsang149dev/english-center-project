@@ -37,6 +37,14 @@ public class InvoiceService {
     }
 
     public InvoiceResponseDto createInvoice(InvoiceCreateRequestDto request) {
+        if (request.getAmount() == null || request.getMonth() < 1 || request.getMonth() > 12 || request.getYear() == null) {
+            throw new BusinessRuleException("Month must be between 1 and 12 and year is required.");
+        } 
+
+        if (request.getAmount() != null && request.getAmount().signum() <= 0) {
+            throw new BusinessRuleException("Amount must be positive.");
+        }
+
         Enrollment checkEnrollment = enrollmentRepository.findById(request.getEnrollmentId())
                 .orElseThrow(() -> new RuntimeException("Enrollment not found"));
 
