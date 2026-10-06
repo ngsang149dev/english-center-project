@@ -2,6 +2,7 @@ package com.abuenglishcenter.managementsystem.payroll;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -199,6 +200,12 @@ public class TeacherPayrollService {
         if (checkPayroll.getStatus() == PayrollStatus.DRAFT && newStatus == PayrollStatus.CONFIRMED) {
             recalculate(id);
         }
+
+        if (newStatus == PayrollStatus.PAID) {
+            checkPayroll.setPaidDate(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")));
+        } else if (checkPayroll.getStatus() == PayrollStatus.PAID) {
+            checkPayroll.setPaidDate(null);
+        }
         
         checkPayroll.setStatus(newStatus);
 
@@ -224,7 +231,7 @@ public class TeacherPayrollService {
         List<PayrollDetailResponseDto> detailDtos = details.stream().map(this::toDetailDto).toList();
         return new TeacherPayrollResponseDto(payroll.getId(), payroll.getTeacher().getId(), payroll.getMonth(),
                 payroll.getYear(), payroll.getSessionPay(), payroll.getBonus(), payroll.getTotalPay(),
-                payroll.isManuallyAdjusted(), payroll.getStatus(), detailDtos);
+                payroll.isManuallyAdjusted(), payroll.getStatus(), detailDtos, payroll.getPaidDate());
     }
 
 }

@@ -1,6 +1,7 @@
 package com.abuenglishcenter.managementsystem.payroll;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 public class TeacherPayrollResponseDto {
@@ -14,9 +15,10 @@ public class TeacherPayrollResponseDto {
     private boolean isManuallyAdjusted;
     private PayrollStatus status;
     private List<PayrollDetailResponseDto> details;
+    private LocalDate paidDate;
     
     public TeacherPayrollResponseDto(Long id, Long teacherId, Integer month, Integer year, BigDecimal sessionPay,
-            BigDecimal bonus, BigDecimal totalPay, boolean isManuallyAdjusted, PayrollStatus status, List<PayrollDetailResponseDto> details) {
+            BigDecimal bonus, BigDecimal totalPay, boolean isManuallyAdjusted, PayrollStatus status, List<PayrollDetailResponseDto> details, LocalDate paidDate) {
         this.id = id;
         this.teacherId = teacherId;
         this.month = month;
@@ -27,8 +29,8 @@ public class TeacherPayrollResponseDto {
         this.isManuallyAdjusted = isManuallyAdjusted;
         this.status = status;
         this.details = details;
+        this.paidDate = paidDate;
     }
-
 
     public Long getId() {
         return id;
@@ -68,6 +70,11 @@ public class TeacherPayrollResponseDto {
 
     public List<PayrollDetailResponseDto> getDetails() {
         return details;
+    }
+
+
+    public LocalDate getPaidDate() {
+        return paidDate;
     }
 
     
