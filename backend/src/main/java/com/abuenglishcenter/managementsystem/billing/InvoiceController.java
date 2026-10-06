@@ -35,8 +35,14 @@ public class InvoiceController {
         return invoiceService.createInvoice(request);
     }
 
+    @PostMapping("/generate")
+    public InvoiceGenerationResultDto generateInvoices(@RequestParam Integer month, @RequestParam Integer year) {
+        return invoiceService.generateMonthlyInvoices(month, year);
+    }
+
     @PutMapping("/{id}/amount")
     public InvoiceResponseDto updateAdjustedAmount(@PathVariable Long id, @RequestBody BigDecimal amount) {
         return invoiceService.updateAdjustedAmount(id, amount);
     }
+
 }

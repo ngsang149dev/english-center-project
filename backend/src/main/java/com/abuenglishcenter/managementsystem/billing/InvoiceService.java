@@ -2,15 +2,23 @@ package com.abuenglishcenter.managementsystem.billing;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.abuenglishcenter.managementsystem.classroom.ClassFeeHistory;
 import com.abuenglishcenter.managementsystem.classroom.ClassFeeHistoryRepository;
 import com.abuenglishcenter.managementsystem.enrollment.Enrollment;
 import com.abuenglishcenter.managementsystem.enrollment.EnrollmentRepository;
+import com.abuenglishcenter.managementsystem.enrollment.EnrollmentStatus;
 import com.abuenglishcenter.managementsystem.exception.BusinessRuleException;
 import com.abuenglishcenter.managementsystem.student.StudentRepository;
 
@@ -29,21 +37,77 @@ public class InvoiceService {
     @Autowired
     private ClassFeeHistoryRepository classFeeHistoryRepository;
 
-    @Autowired 
+    @Autowired
     private StudentRepository studentRepository;
+
+    @Transactional
+    public InvoiceGenerationResultDto generateMonthlyInvoices(Integer month, Integer year) {
+        validateMonthYear(month, year);
+
+        LocalDate firstDay = LocalDate.of(year, month, 1);
+        LocalDate lastDay = firstDay.withDayOfMonth(firstDay.lengthOfMonth());
+
+        List<Enrollment> enrollments = enrollmentRepository
+                .findByStatusAndEnrolledDateLessThanEqual(EnrollmentStatus.ACTIVE, lastDay);
+
+        Map<Long, Optional<BigDecimal>> feeCache = new HashMap<>();
+        Set<String> classesWithoutFee = new LinkedHashSet<>();
+
+        int created = 0, alreadyExisted = 0, missingFee = 0;
+
+        for (Enrollment e : enrollments) {
+
+            if (invoiceRepository.existsByEnrollmentIdAndMonthAndYear(e.getId(), month, year)) {
+                alreadyExisted++;
+                continue;
+            }
+
+            Optional<BigDecimal> fee = feeCache.computeIfAbsent(e.getClassroom().getId(),
+                    classId -> classFeeHistoryRepository.findEffectiveFee(classId, firstDay)
+                            .map(ClassFeeHistory::getMonthlyFee));
+
+            if (fee.isEmpty()) {
+                missingFee++;
+                classesWithoutFee.add(e.getClassroom().getName());
+                continue;
+            }
+
+            invoiceRepository.save(buildInvoice(e, month, year, fee.get()));
+            created++;
+        }
+
+        return new InvoiceGenerationResultDto(month, year, created, alreadyExisted, missingFee, new ArrayList<>(classesWithoutFee));
+    }
 
     public List<InvoiceResponseDto> getAllInvoices() {
         return invoiceRepository.findAll().stream().map(this::toDto).toList();
     }
 
-    public InvoiceResponseDto createInvoice(InvoiceCreateRequestDto request) {
-        if (request.getAmount() == null || request.getMonth() < 1 || request.getMonth() > 12 || request.getYear() == null) {
+    private void validateMonthYear(Integer month, Integer year) {
+        if (month < 1 || month > 12 || year == null) {
             throw new BusinessRuleException("Month must be between 1 and 12 and year is required.");
-        } 
+        }
+    }
+
+    private Invoice buildInvoice(Enrollment enrollment, Integer month, Integer year, BigDecimal amount) {
+        Invoice invoice = new Invoice();
+        invoice.setEnrollment(enrollment);
+        invoice.setMonth(month);
+        invoice.setYear(year);
+        invoice.setAmount(amount);
+        invoice.setAdjustedAmount(amount);
+        invoice.setStatus(InvoiceStatus.UNPAID);
+        return invoice;
+    }
+
+    @Transactional
+    public InvoiceResponseDto createInvoice(InvoiceCreateRequestDto request) {
+        validateMonthYear(request.getMonth(), request.getYear());
 
         if (request.getAmount() != null && request.getAmount().signum() <= 0) {
             throw new BusinessRuleException("Amount must be positive.");
         }
+        ;
 
         Enrollment checkEnrollment = enrollmentRepository.findById(request.getEnrollmentId())
                 .orElseThrow(() -> new RuntimeException("Enrollment not found"));
@@ -66,15 +130,8 @@ public class InvoiceService {
                     .getMonthlyFee();
         }
 
-        Invoice newInvoice = new Invoice();
-        newInvoice.setEnrollment(checkEnrollment);
-        newInvoice.setMonth(request.getMonth());
-        newInvoice.setYear(request.getYear());
-        newInvoice.setAmount(amount);
-        newInvoice.setAdjustedAmount(amount);
-        newInvoice.setStatus(InvoiceStatus.UNPAID);
-
-        Invoice saved = invoiceRepository.save(newInvoice);
+        Invoice saved = invoiceRepository
+                .save(buildInvoice(checkEnrollment, request.getMonth(), request.getYear(), amount));
         return toDto(saved);
     }
 
@@ -115,10 +172,11 @@ public class InvoiceService {
         BigDecimal billed = invoiceRepository.sumBilledByStudent(studentId);
         BigDecimal paid = paymentRepository.sumValidByStudent(studentId);
         return new StudentBalanceResponseDto(studentId, billed, paid);
-    } 
+    }
 
     private void ensureStudentExists(Long studentId) {
-        if (!studentRepository.existsById(studentId)) throw new RuntimeException("Student not found");
+        if (!studentRepository.existsById(studentId))
+            throw new RuntimeException("Student not found");
     }
 
     private InvoiceResponseDto toDto(Invoice invoice) {
