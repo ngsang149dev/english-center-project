@@ -84,7 +84,7 @@ public class InvoiceService {
     }
 
     private void validateMonthYear(Integer month, Integer year) {
-        if (month < 1 || month > 12 || year == null) {
+        if (month == null || month < 1 || month > 12 || year == null) {
             throw new BusinessRuleException("Month must be between 1 and 12 and year is required.");
         }
     }
@@ -107,7 +107,6 @@ public class InvoiceService {
         if (request.getAmount() != null && request.getAmount().signum() <= 0) {
             throw new BusinessRuleException("Amount must be positive.");
         }
-        ;
 
         Enrollment checkEnrollment = enrollmentRepository.findById(request.getEnrollmentId())
                 .orElseThrow(() -> new RuntimeException("Enrollment not found"));
@@ -137,6 +136,9 @@ public class InvoiceService {
 
     @Transactional
     public InvoiceResponseDto updateAdjustedAmount(Long id, BigDecimal newAmount) {
+        if (newAmount.compareTo(BigDecimal.ZERO) < 0) {
+            throw new BusinessRuleException("New amount can not be negative");
+        }
         Invoice checkInvoice = invoiceRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Invoice not found"));
 
