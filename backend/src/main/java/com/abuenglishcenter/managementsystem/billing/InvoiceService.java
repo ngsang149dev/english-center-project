@@ -1,6 +1,7 @@
 package com.abuenglishcenter.managementsystem.billing;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,6 +12,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +26,9 @@ import com.abuenglishcenter.managementsystem.student.StudentRepository;
 
 @Service
 public class InvoiceService {
+
+    @Value("${app.invoice.pro-rate-first-month:true}")
+    private boolean proRateFirstMonth;
 
     @Autowired
     private InvoiceRepository invoiceRepository;
@@ -72,7 +77,7 @@ public class InvoiceService {
                 continue;
             }
 
-            invoiceRepository.save(buildInvoice(e, month, year, fee.get()));
+            invoiceRepository.save(buildInvoice(e, month, year, fee.get(), calculateAdjustedAmount(e, fee.get(), month, year)));
             created++;
         }
 
@@ -83,19 +88,33 @@ public class InvoiceService {
         return invoiceRepository.findAll().stream().map(this::toDto).toList();
     }
 
+    private BigDecimal calculateAdjustedAmount(Enrollment enrollment, BigDecimal fee, Integer month, Integer year) {
+        LocalDate enrolled = enrollment.getEnrolledDate();
+        boolean startMidMonth = proRateFirstMonth && enrolled.getYear() == year && enrolled.getMonthValue() == month && enrolled.getDayOfMonth() > 1;
+
+        if (!startMidMonth) {
+            return fee;
+        }
+
+        int daysInMonth = enrolled.lengthOfMonth();
+        int remainingDays = daysInMonth - enrolled.getDayOfMonth() - 1;
+
+        return fee.multiply(BigDecimal.valueOf(remainingDays)).divide(BigDecimal.valueOf(daysInMonth), 0, RoundingMode.HALF_UP); 
+    }
+
     private void validateMonthYear(Integer month, Integer year) {
         if (month == null || month < 1 || month > 12 || year == null) {
             throw new BusinessRuleException("Month must be between 1 and 12 and year is required.");
         }
     }
 
-    private Invoice buildInvoice(Enrollment enrollment, Integer month, Integer year, BigDecimal amount) {
+    private Invoice buildInvoice(Enrollment enrollment, Integer month, Integer year, BigDecimal amount, BigDecimal adjustedAmount) {
         Invoice invoice = new Invoice();
         invoice.setEnrollment(enrollment);
         invoice.setMonth(month);
         invoice.setYear(year);
         invoice.setAmount(amount);
-        invoice.setAdjustedAmount(amount);
+        invoice.setAdjustedAmount(adjustedAmount);
         invoice.setStatus(InvoiceStatus.UNPAID);
         return invoice;
     }
@@ -119,6 +138,7 @@ public class InvoiceService {
         }
 
         BigDecimal amount = request.getAmount();
+        BigDecimal adjustedAmount = amount;
 
         if (amount == null) {
             LocalDate firstDay = LocalDate.of(request.getYear(), request.getMonth(), 1);
@@ -127,10 +147,11 @@ public class InvoiceService {
                             "Class " + checkEnrollment.getClassroom().getName()
                                     + " has no tuition fee for " + request.getMonth() + "/" + request.getYear()))
                     .getMonthlyFee();
+            adjustedAmount = calculateAdjustedAmount(checkEnrollment, amount, request.getMonth(), request.getYear());
         }
 
         Invoice saved = invoiceRepository
-                .save(buildInvoice(checkEnrollment, request.getMonth(), request.getYear(), amount));
+                .save(buildInvoice(checkEnrollment, request.getMonth(), request.getYear(), amount, adjustedAmount));
         return toDto(saved);
     }
 
