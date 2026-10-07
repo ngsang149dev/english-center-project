@@ -97,7 +97,7 @@ public class InvoiceService {
         }
 
         int daysInMonth = enrolled.lengthOfMonth();
-        int remainingDays = daysInMonth - enrolled.getDayOfMonth() - 1;
+        int remainingDays = daysInMonth - enrolled.getDayOfMonth() + 1;
 
         return fee.multiply(BigDecimal.valueOf(remainingDays)).divide(BigDecimal.valueOf(daysInMonth), 0, RoundingMode.HALF_UP); 
     }

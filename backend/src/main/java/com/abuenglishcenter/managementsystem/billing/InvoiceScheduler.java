@@ -30,7 +30,7 @@ public class InvoiceScheduler {
                 log.warn("Classes without tuition fee: {}", result.getClassesWithoutFee());
             }
         } catch (Exception ex) {
-            log.error("Monthly invoice generation false", ex);
+            log.error("Monthly invoice generation failed", ex);
         }
     }
 }
