@@ -3,7 +3,6 @@ package com.abuenglishcenter.managementsystem.billing;
 import java.math.BigDecimal;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,19 +12,22 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController 
+@RestController
 @RequestMapping("/invoices")
 public class InvoiceController {
 
-    @Autowired 
-    private InvoiceService invoiceService;
+    private final InvoiceService invoiceService;
 
-    @GetMapping 
+    public InvoiceController(InvoiceService invoiceService) {
+        this.invoiceService = invoiceService;
+    }
+
+    @GetMapping
     public List<InvoiceResponseDto> getInvoices(@RequestParam(required = false) Long studentId) {
         return studentId == null ? invoiceService.getAllInvoices() : invoiceService.getInvoicesByStudent(studentId);
     }
 
-    @GetMapping("/balance") 
+    @GetMapping("/balance")
     public StudentBalanceResponseDto getStudentBalance(@RequestParam Long studentId) {
         return invoiceService.getStudentBalance(studentId);
     }

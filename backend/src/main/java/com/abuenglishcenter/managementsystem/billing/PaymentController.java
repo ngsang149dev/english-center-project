@@ -2,7 +2,6 @@ package com.abuenglishcenter.managementsystem.billing;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,19 +10,22 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController 
+@RestController
 @RequestMapping("/payments")
 public class PaymentController {
 
-    @Autowired 
-    private PaymentService paymentService;
+    private final PaymentService paymentService;
 
-    @GetMapping 
+    public PaymentController(PaymentService paymentService) {
+        this.paymentService = paymentService;
+    }
+
+    @GetMapping
     public List<PaymentResponseDto> getAllPayments() {
         return paymentService.getAllPayments();
     }
 
-    @PostMapping 
+    @PostMapping
     public PaymentResponseDto createPayment(@RequestBody PaymentCreateRequestDto request) {
         return paymentService.createPayment(request);
     }

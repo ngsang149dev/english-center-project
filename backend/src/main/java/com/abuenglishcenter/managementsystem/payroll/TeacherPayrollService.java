@@ -179,7 +179,7 @@ public class TeacherPayrollService {
         TeacherPayroll checkPayroll = teacherPayrollRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Payroll not found"));
 
-        requireDraft(checkPayroll, "given a bonus change");
+        requireDraft(checkPayroll, "updated");
 
         if (newBonus.signum() < 0) {
             throw new BusinessRuleException("Bonus must not be negative.");
