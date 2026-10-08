@@ -2,27 +2,28 @@ package com.abuenglishcenter.managementsystem.billing;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service 
+@Service
 public class PaymentService {
 
-    @Autowired 
-    private PaymentRepository paymentRepository;
+    private final PaymentRepository paymentRepository;
+    private final InvoiceRepository invoiceRepository;
+    private final InvoiceService invoiceService;
 
-    @Autowired 
-    private InvoiceRepository invoiceRepository;
-
-    @Autowired 
-    private InvoiceService invoiceService;
+    public PaymentService(PaymentRepository paymentRepository, InvoiceRepository invoiceRepository,
+            InvoiceService invoiceService) {
+        this.paymentRepository = paymentRepository;
+        this.invoiceRepository = invoiceRepository;
+        this.invoiceService = invoiceService;
+    }
 
     public List<PaymentResponseDto> getAllPayments() {
         return paymentRepository.findAll().stream().map(this::toDto).toList();
     }
 
-    @Transactional 
+    @Transactional
     public PaymentResponseDto createPayment(PaymentCreateRequestDto request) {
         Invoice checkInvoice = invoiceRepository.findById(request.getInvoiceId()).orElseThrow(() -> new RuntimeException("Invoice not found"));
 
@@ -37,7 +38,7 @@ public class PaymentService {
         return toDto(saved);
     }
 
-    @Transactional 
+    @Transactional
     public PaymentResponseDto cancelPayment(Long paymentId) {
         Payment checkPayment = paymentRepository.findById(paymentId).orElseThrow(() -> new RuntimeException("Payment not found"));
 
@@ -46,8 +47,6 @@ public class PaymentService {
         invoiceService.recalculateInvoiceStatus(checkPayment.getInvoice());
         return toDto(updated);
     }
-
-    
 
     private PaymentResponseDto toDto(Payment payment) {
         return new PaymentResponseDto(payment.getId(), payment.getInvoice().getId(), payment.getAmount(), payment.getPaymentDate(), payment.getPaymentMethod(), payment.isCancelled());

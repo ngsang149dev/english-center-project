@@ -2,20 +2,21 @@ package com.abuenglishcenter.managementsystem.classroom;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.abuenglishcenter.managementsystem.teacher.Teacher;
 import com.abuenglishcenter.managementsystem.teacher.TeacherRepository;
 
-@Service 
+@Service
 public class ClassroomService {
 
-    @Autowired 
-    private ClassroomRepository classroomRepository;
+    private final ClassroomRepository classroomRepository;
+    private final TeacherRepository teacherRepository;
 
-    @Autowired 
-    private TeacherRepository teacherRepository;
+    public ClassroomService(ClassroomRepository classroomRepository, TeacherRepository teacherRepository) {
+        this.classroomRepository = classroomRepository;
+        this.teacherRepository = teacherRepository;
+    }
 
     public List<ClassroomResponseDto> getAllClassrooms() {
         return classroomRepository.findAll().stream().map(this::toDto).toList();

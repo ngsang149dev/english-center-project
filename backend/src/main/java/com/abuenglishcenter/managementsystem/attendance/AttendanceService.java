@@ -3,7 +3,6 @@ package com.abuenglishcenter.managementsystem.attendance;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,28 +11,31 @@ import com.abuenglishcenter.managementsystem.classroom.ClassSessionRepository;
 import com.abuenglishcenter.managementsystem.enrollment.Enrollment;
 import com.abuenglishcenter.managementsystem.enrollment.EnrollmentRepository;
 
-@Service 
+@Service
 public class AttendanceService {
-    @Autowired 
-    private AttendanceRepository attendanceRepository;
-    
-    @Autowired 
-    private ClassSessionRepository classSessionRepository;
 
-    @Autowired
-    private EnrollmentRepository enrollmentRepository;
+    private final AttendanceRepository attendanceRepository;
+    private final ClassSessionRepository classSessionRepository;
+    private final EnrollmentRepository enrollmentRepository;
+
+    public AttendanceService(AttendanceRepository attendanceRepository, ClassSessionRepository classSessionRepository,
+            EnrollmentRepository enrollmentRepository) {
+        this.attendanceRepository = attendanceRepository;
+        this.classSessionRepository = classSessionRepository;
+        this.enrollmentRepository = enrollmentRepository;
+    }
 
     public List<AttendanceResponseDto> getAllAttendances() {
         return attendanceRepository.findAll().stream().map(this::toDto).toList();
     }
 
-    @Transactional 
+    @Transactional
     public List<AttendanceResponseDto> createAttendance(AttendanceCreateRequestDto request) {
         ClassSession checkSession = classSessionRepository.findById(request.getSessionId()).orElseThrow(() -> new RuntimeException("Class session not found"));
 
         List<Attendance> savedList = new ArrayList<>();
 
-        for (AttendanceItemDto item: request.getAttendances()) {
+        for (AttendanceItemDto item : request.getAttendances()) {
             Enrollment checkEnrollment = enrollmentRepository.findById(item.getEnrollmentId()).orElseThrow(() -> new RuntimeException("Enrollment not found"));
 
             Attendance newAttendance = new Attendance();
@@ -44,7 +46,7 @@ public class AttendanceService {
             Attendance savedAttendance = attendanceRepository.save(newAttendance);
             savedList.add(savedAttendance);
         }
-        
+
         return savedList.stream().map(this::toDto).toList();
     }
 

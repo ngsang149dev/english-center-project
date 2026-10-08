@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,20 +29,21 @@ public class InvoiceService {
     @Value("${app.invoice.pro-rate-first-month:true}")
     private boolean proRateFirstMonth;
 
-    @Autowired
-    private InvoiceRepository invoiceRepository;
+    private final InvoiceRepository invoiceRepository;
+    private final EnrollmentRepository enrollmentRepository;
+    private final PaymentRepository paymentRepository;
+    private final ClassFeeHistoryRepository classFeeHistoryRepository;
+    private final StudentRepository studentRepository;
 
-    @Autowired
-    private EnrollmentRepository enrollmentRepository;
-
-    @Autowired
-    private PaymentRepository paymentRepository;
-
-    @Autowired
-    private ClassFeeHistoryRepository classFeeHistoryRepository;
-
-    @Autowired
-    private StudentRepository studentRepository;
+    public InvoiceService(InvoiceRepository invoiceRepository, EnrollmentRepository enrollmentRepository,
+            PaymentRepository paymentRepository, ClassFeeHistoryRepository classFeeHistoryRepository,
+            StudentRepository studentRepository) {
+        this.invoiceRepository = invoiceRepository;
+        this.enrollmentRepository = enrollmentRepository;
+        this.paymentRepository = paymentRepository;
+        this.classFeeHistoryRepository = classFeeHistoryRepository;
+        this.studentRepository = studentRepository;
+    }
 
     @Transactional
     public InvoiceGenerationResultDto generateMonthlyInvoices(Integer month, Integer year) {
@@ -99,7 +99,7 @@ public class InvoiceService {
         int daysInMonth = enrolled.lengthOfMonth();
         int remainingDays = daysInMonth - enrolled.getDayOfMonth() + 1;
 
-        return fee.multiply(BigDecimal.valueOf(remainingDays)).divide(BigDecimal.valueOf(daysInMonth), 0, RoundingMode.HALF_UP); 
+        return fee.multiply(BigDecimal.valueOf(remainingDays)).divide(BigDecimal.valueOf(daysInMonth), 0, RoundingMode.HALF_UP);
     }
 
     private void validateMonthYear(Integer month, Integer year) {
