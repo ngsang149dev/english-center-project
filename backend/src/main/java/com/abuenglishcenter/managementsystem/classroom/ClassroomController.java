@@ -39,7 +39,8 @@ public class ClassroomController {
     }
 
     @PutMapping("/{id}/teacher")
-    public ClassroomResponseDto updateTeacher(@PathVariable Long id, @RequestBody Long teacherId) {
-        return classroomService.updateTeacher(id, teacherId);
+    public ClassroomResponseDto updateTeacher(@PathVariable Long id,
+            @Valid @RequestBody ClassroomTeacherUpdateRequestDto request) {
+        return classroomService.updateTeacher(id, request.getTeacherId());
     }
 }

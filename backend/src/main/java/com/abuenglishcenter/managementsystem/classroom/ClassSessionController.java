@@ -33,12 +33,14 @@ public class ClassSessionController {
     }
 
     @PutMapping("/{id}/teacher")
-    public ClassSessionResponseDto updateTeacher(@PathVariable Long id, @RequestBody Long newTeacherId) {
-        return classSessionService.updateTeacher(id, newTeacherId);
+    public ClassSessionResponseDto updateTeacher(@PathVariable Long id,
+            @Valid @RequestBody ClassSessionTeacherUpdateRequestDto request) {
+        return classSessionService.updateTeacher(id, request.getTeacherId());
     }
 
     @PutMapping("/{id}")
-    public ClassSessionResponseDto updateIsTaught(@PathVariable Long id, @RequestBody boolean isTaught) {
-        return classSessionService.updateIsTaught(id, isTaught);
+    public ClassSessionResponseDto updateIsTaught(@PathVariable Long id,
+            @Valid @RequestBody ClassSessionUpdateRequestDto request) {
+        return classSessionService.updateIsTaught(id, request.getTeacherTaught());
     }
 }
