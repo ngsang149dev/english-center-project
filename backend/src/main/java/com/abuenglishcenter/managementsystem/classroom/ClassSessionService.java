@@ -3,7 +3,6 @@ package com.abuenglishcenter.managementsystem.classroom;
 import java.time.LocalDate;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.abuenglishcenter.managementsystem.exception.BusinessRuleException;
@@ -15,17 +14,18 @@ import com.abuenglishcenter.managementsystem.teacher.TeacherRepository;
 @Service
 public class ClassSessionService {
 
-    @Autowired
-    private ClassSessionRepository classSessionRepository;
+    private final ClassSessionRepository classSessionRepository;
+    private final ClassroomRepository classroomRepository;
+    private final TeacherRepository teacherRepository;
+    private final TeacherPayrollRepository teacherPayrollRepository;
 
-    @Autowired
-    private ClassroomRepository classroomRepository;
-
-    @Autowired
-    private TeacherRepository teacherRepository;
-
-    @Autowired 
-    private TeacherPayrollRepository teacherPayrollRepository;
+    public ClassSessionService(ClassSessionRepository classSessionRepository, ClassroomRepository classroomRepository,
+            TeacherRepository teacherRepository, TeacherPayrollRepository teacherPayrollRepository) {
+        this.classSessionRepository = classSessionRepository;
+        this.classroomRepository = classroomRepository;
+        this.teacherRepository = teacherRepository;
+        this.teacherPayrollRepository = teacherPayrollRepository;
+    }
 
     public List<ClassSessionResponseDto> getAllClassSessions() {
         return classSessionRepository.findAll().stream().map(this::toDto).toList();

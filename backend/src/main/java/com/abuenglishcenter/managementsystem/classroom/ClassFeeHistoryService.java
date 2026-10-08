@@ -3,17 +3,19 @@ package com.abuenglishcenter.managementsystem.classroom;
 import java.time.LocalDate;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ClassFeeHistoryService {
 
-    @Autowired 
-    private ClassroomRepository classroomRepository;
+    private final ClassroomRepository classroomRepository;
+    private final ClassFeeHistoryRepository classFeeHistoryRepository;
 
-    @Autowired 
-    private ClassFeeHistoryRepository classFeeHistoryRepository;
+    public ClassFeeHistoryService(ClassroomRepository classroomRepository,
+            ClassFeeHistoryRepository classFeeHistoryRepository) {
+        this.classroomRepository = classroomRepository;
+        this.classFeeHistoryRepository = classFeeHistoryRepository;
+    }
 
     public List<ClassFeeHistoryResponseDto> getAllHistoryFees() {
         return classFeeHistoryRepository.findAll().stream().map(this::toDto).toList();

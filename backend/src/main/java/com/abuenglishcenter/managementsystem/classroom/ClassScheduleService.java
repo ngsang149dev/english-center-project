@@ -2,17 +2,19 @@ package com.abuenglishcenter.managementsystem.classroom;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-@Service 
+@Service
 public class ClassScheduleService {
 
-    @Autowired 
-    private ClassScheduleRepository classScheduleRepository;
+    private final ClassScheduleRepository classScheduleRepository;
+    private final ClassroomRepository classroomRepository;
 
-    @Autowired 
-    private ClassroomRepository classroomRepository;
+    public ClassScheduleService(ClassScheduleRepository classScheduleRepository,
+            ClassroomRepository classroomRepository) {
+        this.classScheduleRepository = classScheduleRepository;
+        this.classroomRepository = classroomRepository;
+    }
 
     public List<ClassScheduleResponseDto> getAllClassSchedules() {
         return classScheduleRepository.findAll().stream().map(this::toDto).toList();
