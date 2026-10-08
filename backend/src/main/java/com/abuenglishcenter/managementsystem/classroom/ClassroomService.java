@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.abuenglishcenter.managementsystem.exception.NotFoundException;
 import com.abuenglishcenter.managementsystem.teacher.Teacher;
 import com.abuenglishcenter.managementsystem.teacher.TeacherRepository;
 
@@ -23,7 +24,7 @@ public class ClassroomService {
     }
 
     public ClassroomResponseDto createClassroom(ClassroomCreateRequestDto request) {
-        Teacher checkTeacher = teacherRepository.findById(request.getTeacherId()).orElseThrow(() -> new RuntimeException("Teacher not found"));
+        Teacher checkTeacher = teacherRepository.findById(request.getTeacherId()).orElseThrow(() -> new NotFoundException("Teacher with id " + request.getTeacherId() + " not found"));
         Classroom newClassroom = new Classroom();
         newClassroom.setName(request.getName());
         newClassroom.setTeacher(checkTeacher);
@@ -37,7 +38,7 @@ public class ClassroomService {
     }
 
     public ClassroomResponseDto updateTeacher(Long classroomId, Long newTeacherId) {
-        Classroom checkClassroom = classroomRepository.findById(classroomId).orElseThrow(() -> new RuntimeException("Classroom not found"));
+        Classroom checkClassroom = classroomRepository.findById(classroomId).orElseThrow(() -> new NotFoundException("Classroom with id " + classroomId + " not found"));
         Teacher newTeacher = teacherRepository.findById(newTeacherId).orElseThrow(() -> new  RuntimeException("Teacher not found"));
 
         checkClassroom.setTeacher(newTeacher);

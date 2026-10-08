@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.abuenglishcenter.managementsystem.classroom.ClassSession;
 import com.abuenglishcenter.managementsystem.classroom.ClassSessionRepository;
 import com.abuenglishcenter.managementsystem.exception.BusinessRuleException;
+import com.abuenglishcenter.managementsystem.exception.NotFoundException;
 import com.abuenglishcenter.managementsystem.teacher.Teacher;
 import com.abuenglishcenter.managementsystem.teacher.TeacherRepository;
 
@@ -93,7 +94,8 @@ public class TeacherPayrollService {
     @Transactional
     public TeacherPayrollResponseDto createTeacherPayroll(TeacherPayrollCreateRequestDto request) {
         Teacher checkTeacher = teacherRepository.findById(request.getTeacherId())
-                .orElseThrow(() -> new RuntimeException("Teacher not found"));
+                .orElseThrow(() -> new NotFoundException(
+                        "Teacher with id " + request.getTeacherId() + " not found"));
 
         if (teacherPayrollRepository.existsByTeacherIdAndMonthAndYear(
                 checkTeacher.getId(), request.getMonth(), request.getYear())) {
@@ -145,7 +147,7 @@ public class TeacherPayrollService {
     @Transactional
     public TeacherPayrollResponseDto recalculate(Long payrollId) {
         TeacherPayroll checkPayroll = teacherPayrollRepository.findById(payrollId)
-                .orElseThrow(() -> new RuntimeException("Payroll not found"));
+                .orElseThrow(() -> new NotFoundException("TeacherPayroll with id " + payrollId + " not found"));
 
         requireDraft(checkPayroll, "recalculated");
 
@@ -168,7 +170,7 @@ public class TeacherPayrollService {
     @Transactional
     public void deleteTeacherPayroll(Long id) {
         TeacherPayroll checkPayroll = teacherPayrollRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Payroll not found"));
+                .orElseThrow(() -> new NotFoundException("TeacherPayroll with id " + id + " not found"));
         requireDraft(checkPayroll, "deleted");
         payrollDetailRepository.deleteByPayrollId(id);
         teacherPayrollRepository.delete(checkPayroll);
@@ -177,7 +179,7 @@ public class TeacherPayrollService {
     @Transactional
     public TeacherPayrollResponseDto updateBonus(Long id, BigDecimal newBonus) {
         TeacherPayroll checkPayroll = teacherPayrollRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Payroll not found"));
+                .orElseThrow(() -> new NotFoundException("TeacherPayroll with id " + id + " not found"));
 
         requireDraft(checkPayroll, "updated");
 
@@ -195,7 +197,7 @@ public class TeacherPayrollService {
     @Transactional
     public TeacherPayrollResponseDto updateStatus(Long id, PayrollStatus newStatus) {
         TeacherPayroll checkPayroll = teacherPayrollRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Payroll not found"));
+                .orElseThrow(() -> new NotFoundException("TeacherPayroll with id " + id + " not found"));
 
         if (!checkPayroll.getStatus().canMoveTo(newStatus)) {
             throw new BusinessRuleException("Cannot change payroll status from "

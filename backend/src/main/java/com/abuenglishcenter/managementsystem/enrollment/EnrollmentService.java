@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.abuenglishcenter.managementsystem.classroom.Classroom;
 import com.abuenglishcenter.managementsystem.classroom.ClassroomRepository;
+import com.abuenglishcenter.managementsystem.exception.NotFoundException;
 import com.abuenglishcenter.managementsystem.student.Student;
 import com.abuenglishcenter.managementsystem.student.StudentRepository;
 
@@ -27,8 +28,8 @@ public class EnrollmentService {
     }
 
     public EnrollmentResponseDto createEnrollment(EnrollmentCreateRequestDto request) {
-        Student checkStudent = studentRepository.findById(request.getStudentId()).orElseThrow(() -> new RuntimeException("Student not found"));
-        Classroom checkClassroom = classroomRepository.findById(request.getClassId()).orElseThrow(() -> new RuntimeException("Class not found"));
+        Student checkStudent = studentRepository.findById(request.getStudentId()).orElseThrow(() -> new NotFoundException("Student with id " + request.getStudentId() + " not found"));
+        Classroom checkClassroom = classroomRepository.findById(request.getClassId()).orElseThrow(() -> new NotFoundException("Classroom with id " + request.getClassId() + " not found"));
 
         Enrollment newEnrollment = new Enrollment();
         newEnrollment.setStudent(checkStudent);

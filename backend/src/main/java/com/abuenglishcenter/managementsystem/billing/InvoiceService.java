@@ -21,6 +21,7 @@ import com.abuenglishcenter.managementsystem.enrollment.Enrollment;
 import com.abuenglishcenter.managementsystem.enrollment.EnrollmentRepository;
 import com.abuenglishcenter.managementsystem.enrollment.EnrollmentStatus;
 import com.abuenglishcenter.managementsystem.exception.BusinessRuleException;
+import com.abuenglishcenter.managementsystem.exception.NotFoundException;
 import com.abuenglishcenter.managementsystem.student.StudentRepository;
 
 @Service
@@ -128,7 +129,8 @@ public class InvoiceService {
         }
 
         Enrollment checkEnrollment = enrollmentRepository.findById(request.getEnrollmentId())
-                .orElseThrow(() -> new RuntimeException("Enrollment not found"));
+                .orElseThrow(() -> new NotFoundException(
+                        "Enrollment with id " + request.getEnrollmentId() + " not found"));
 
         if (invoiceRepository.existsByEnrollmentIdAndMonthAndYear(request.getEnrollmentId(), request.getMonth(),
                 request.getYear())) {
@@ -161,7 +163,7 @@ public class InvoiceService {
             throw new BusinessRuleException("New amount can not be negative");
         }
         Invoice checkInvoice = invoiceRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Invoice not found"));
+                .orElseThrow(() -> new NotFoundException("Invoice with id " + id + " not found"));
 
         checkInvoice.setAdjustedAmount(newAmount);
         recalculateInvoiceStatus(checkInvoice);
@@ -199,7 +201,7 @@ public class InvoiceService {
 
     private void ensureStudentExists(Long studentId) {
         if (!studentRepository.existsById(studentId))
-            throw new RuntimeException("Student not found");
+            throw new NotFoundException("Student with id " + studentId + " not found");
     }
 
     private InvoiceResponseDto toDto(Invoice invoice) {

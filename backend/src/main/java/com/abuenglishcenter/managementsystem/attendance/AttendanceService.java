@@ -10,6 +10,7 @@ import com.abuenglishcenter.managementsystem.classroom.ClassSession;
 import com.abuenglishcenter.managementsystem.classroom.ClassSessionRepository;
 import com.abuenglishcenter.managementsystem.enrollment.Enrollment;
 import com.abuenglishcenter.managementsystem.enrollment.EnrollmentRepository;
+import com.abuenglishcenter.managementsystem.exception.NotFoundException;
 
 @Service
 public class AttendanceService {
@@ -31,12 +32,12 @@ public class AttendanceService {
 
     @Transactional
     public List<AttendanceResponseDto> createAttendance(AttendanceCreateRequestDto request) {
-        ClassSession checkSession = classSessionRepository.findById(request.getSessionId()).orElseThrow(() -> new RuntimeException("Class session not found"));
+        ClassSession checkSession = classSessionRepository.findById(request.getSessionId()).orElseThrow(() -> new NotFoundException("ClassSession with id " + request.getSessionId() + " not found"));
 
         List<Attendance> savedList = new ArrayList<>();
 
         for (AttendanceItemDto item : request.getAttendances()) {
-            Enrollment checkEnrollment = enrollmentRepository.findById(item.getEnrollmentId()).orElseThrow(() -> new RuntimeException("Enrollment not found"));
+            Enrollment checkEnrollment = enrollmentRepository.findById(item.getEnrollmentId()).orElseThrow(() -> new NotFoundException("Enrollment with id " + item.getEnrollmentId() + " not found"));
 
             Attendance newAttendance = new Attendance();
             newAttendance.setSession(checkSession);

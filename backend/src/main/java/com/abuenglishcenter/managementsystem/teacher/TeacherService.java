@@ -29,7 +29,6 @@ public class TeacherService {
 
     @Transactional 
     public TeacherResponseDto createTeacher(TeacherCreateRequestDto request) {
-        // TODO user builder pattern
         User newUser = new User();
         newUser.setUsername(request.getUsername());
         newUser.setPassword(passwordEncoder.encode(request.getPassword()));

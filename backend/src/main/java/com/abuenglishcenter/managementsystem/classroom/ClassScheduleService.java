@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.abuenglishcenter.managementsystem.exception.NotFoundException;
+
 @Service
 public class ClassScheduleService {
 
@@ -25,7 +27,7 @@ public class ClassScheduleService {
     }
 
     public ClassScheduleResponseDto createSchedule(ClassScheduleCreateRequestDto request) {
-        Classroom checkClassroom = classroomRepository.findById(request.getClassId()).orElseThrow(() -> new RuntimeException("Classroom not found"));
+        Classroom checkClassroom = classroomRepository.findById(request.getClassId()).orElseThrow(() -> new NotFoundException("Classroom with id " + request.getClassId() + " not found"));
 
         ClassSchedule newSchedule = new ClassSchedule();
         newSchedule.setClassroom(checkClassroom);

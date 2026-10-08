@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.abuenglishcenter.managementsystem.classroom.Classroom;
 import com.abuenglishcenter.managementsystem.classroom.ClassroomRepository;
+import com.abuenglishcenter.managementsystem.exception.NotFoundException;
 import com.abuenglishcenter.managementsystem.teacher.Teacher;
 import com.abuenglishcenter.managementsystem.teacher.TeacherRepository;
 
@@ -31,8 +32,8 @@ public class TeacherRateService {
 
     @Transactional 
     public TeacherRateResponseDto createTeacherRate(TeacherRateCreateRequestDto request) {
-        Teacher checkTeacher = teacherRepository.findById(request.getTeacherId()).orElseThrow(() -> new RuntimeException("Teacher not found"));
-        Classroom checkClassroom = classroomRepository.findById(request.getClassroomId()).orElseThrow(() -> new RuntimeException("Classroom not found"));
+        Teacher checkTeacher = teacherRepository.findById(request.getTeacherId()).orElseThrow(() -> new NotFoundException("Teacher with id " + request.getTeacherId() + " not found"));
+        Classroom checkClassroom = classroomRepository.findById(request.getClassroomId()).orElseThrow(() -> new NotFoundException("Classroom with id " + request.getClassroomId() + " not found"));
 
         closeCurrentActiveRate(checkTeacher.getId(), checkClassroom.getId(), request.getEffectiveFrom());
 

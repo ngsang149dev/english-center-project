@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.abuenglishcenter.managementsystem.exception.NotFoundException;
+
 @Service
 public class ClassFeeHistoryService {
 
@@ -32,7 +34,8 @@ public class ClassFeeHistoryService {
 
     public ClassFeeHistoryResponseDto createFeeHistory(ClassFeeHistoryCreateRequestDto request) {
         Classroom checkClassroom = classroomRepository.findById(request.getClassId())
-        .orElseThrow(() -> new RuntimeException("Classroom not found"));
+        .orElseThrow(() -> new NotFoundException(
+                "Classroom with id " + request.getClassId() + " not found"));
 
         closeCurrentActiveFee(request.getClassId(), request.getEffectiveFrom());
         //Create a new record

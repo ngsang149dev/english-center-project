@@ -5,6 +5,8 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.abuenglishcenter.managementsystem.exception.NotFoundException;
+
 @Service
 public class PaymentService {
 
@@ -25,7 +27,7 @@ public class PaymentService {
 
     @Transactional
     public PaymentResponseDto createPayment(PaymentCreateRequestDto request) {
-        Invoice checkInvoice = invoiceRepository.findById(request.getInvoiceId()).orElseThrow(() -> new RuntimeException("Invoice not found"));
+        Invoice checkInvoice = invoiceRepository.findById(request.getInvoiceId()).orElseThrow(() -> new NotFoundException("Invoice with id " + request.getInvoiceId() + " not found"));
 
         Payment newPayment = new Payment();
         newPayment.setInvoice(checkInvoice);
@@ -40,7 +42,7 @@ public class PaymentService {
 
     @Transactional
     public PaymentResponseDto cancelPayment(Long paymentId) {
-        Payment checkPayment = paymentRepository.findById(paymentId).orElseThrow(() -> new RuntimeException("Payment not found"));
+        Payment checkPayment = paymentRepository.findById(paymentId).orElseThrow(() -> new NotFoundException("Payment with id " + paymentId + " not found"));
 
         checkPayment.setCancelled(true);
         Payment updated = paymentRepository.save(checkPayment);

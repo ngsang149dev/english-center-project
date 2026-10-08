@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.abuenglishcenter.managementsystem.exception.BusinessRuleException;
+import com.abuenglishcenter.managementsystem.exception.NotFoundException;
 import com.abuenglishcenter.managementsystem.payroll.PayrollStatus;
 import com.abuenglishcenter.managementsystem.payroll.TeacherPayrollRepository;
 import com.abuenglishcenter.managementsystem.teacher.Teacher;
@@ -33,7 +34,8 @@ public class ClassSessionService {
 
     public ClassSessionResponseDto createClassSession(ClassSessionCreateRequestDto request) {
         Classroom checkClassroom = classroomRepository.findById(request.getClassId())
-                .orElseThrow(() -> new RuntimeException("Class not found"));
+                .orElseThrow(() -> new NotFoundException(
+                        "Classroom with id " + request.getClassId() + " not found"));
 
         /*
          * Divided into 2 cases
@@ -45,7 +47,8 @@ public class ClassSessionService {
             teacher = checkClassroom.getTeacher();
         } else {
             teacher = teacherRepository.findById(request.getTeacherId())
-                    .orElseThrow(() -> new RuntimeException("Teacher not found"));
+                    .orElseThrow(() -> new NotFoundException(
+                            "Teacher with id " + request.getTeacherId() + " not found"));
         }
 
         if (request.isTeacherTaught()) {
@@ -63,9 +66,9 @@ public class ClassSessionService {
     }
 
     public ClassSessionResponseDto updateTeacher(Long classSessionId, Long newTeacherId) {
-        ClassSession checkClassSession = classSessionRepository.findById(classSessionId).orElseThrow(() -> new RuntimeException("Class session not found"));
+        ClassSession checkClassSession = classSessionRepository.findById(classSessionId).orElseThrow(() -> new NotFoundException("ClassSession with id " + classSessionId + " not found"));
 
-        Teacher checkTeacher = teacherRepository.findById(newTeacherId).orElseThrow(() -> new RuntimeException("Teacher not found"));
+        Teacher checkTeacher = teacherRepository.findById(newTeacherId).orElseThrow(() -> new NotFoundException("Teacher with id " + newTeacherId + " not found"));
 
         if (checkClassSession.isTeacherTaught()) {
             ensureNotLocked(checkClassSession.getTeacher(), checkClassSession.getSessionDate());
@@ -79,7 +82,7 @@ public class ClassSessionService {
 
     public ClassSessionResponseDto updateIsTaught(Long sessionId, boolean isTaught) {
         ClassSession checkSession = classSessionRepository.findById(sessionId)
-                .orElseThrow(() -> new RuntimeException("Class session not found"));
+                .orElseThrow(() -> new NotFoundException("ClassSession with id " + sessionId + " not found"));
 
         ensureNotLocked(checkSession.getTeacher(), checkSession.getSessionDate());
 
