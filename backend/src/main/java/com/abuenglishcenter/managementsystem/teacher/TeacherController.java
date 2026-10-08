@@ -1,5 +1,6 @@
 package com.abuenglishcenter.managementsystem.teacher;
 
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,9 +20,8 @@ public class TeacherController {
     }
 
     @PostMapping
-    public TeacherResponseDto createTeacher(@RequestBody TeacherCreateRequestDto request) {
+    public TeacherResponseDto createTeacher(@Valid @RequestBody TeacherCreateRequestDto request) {
         return teacherService.createTeacher(request);
     }
 
 }
-

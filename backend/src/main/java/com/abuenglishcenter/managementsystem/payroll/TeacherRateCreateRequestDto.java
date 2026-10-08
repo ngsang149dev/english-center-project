@@ -3,10 +3,20 @@ package com.abuenglishcenter.managementsystem.payroll;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+
 public class TeacherRateCreateRequestDto {
+    @NotNull
+    @Positive
     private Long teacherId;
+    @NotNull
+    @Positive
     private Long classroomId;
+    @NotNull
+    @Positive
     private BigDecimal ratePerSession;
+    @NotNull
     private LocalDate effectiveFrom;
 
     public Long getTeacherId() {

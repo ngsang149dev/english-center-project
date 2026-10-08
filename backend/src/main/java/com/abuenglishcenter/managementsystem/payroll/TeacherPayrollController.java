@@ -3,6 +3,7 @@ package com.abuenglishcenter.managementsystem.payroll;
 import java.math.BigDecimal;
 import java.util.List;
 
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,7 +31,7 @@ public class TeacherPayrollController {
     }
 
     @PostMapping 
-    public TeacherPayrollResponseDto createTeacherPayroll(@RequestBody TeacherPayrollCreateRequestDto request) {
+    public TeacherPayrollResponseDto createTeacherPayroll(@Valid @RequestBody TeacherPayrollCreateRequestDto request) {
         return teacherPayrollService.createTeacherPayroll(request);
     } 
 

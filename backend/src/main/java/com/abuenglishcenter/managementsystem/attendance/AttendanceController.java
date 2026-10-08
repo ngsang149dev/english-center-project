@@ -2,6 +2,7 @@ package com.abuenglishcenter.managementsystem.attendance;
 
 import java.util.List;
 
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,7 +25,7 @@ public class AttendanceController {
     }
 
     @PostMapping
-    public List<AttendanceResponseDto> createAttendance(@RequestBody AttendanceCreateRequestDto request) {
+    public List<AttendanceResponseDto> createAttendance(@Valid @RequestBody AttendanceCreateRequestDto request) {
         return attendanceService.createAttendance(request);
     }
 }

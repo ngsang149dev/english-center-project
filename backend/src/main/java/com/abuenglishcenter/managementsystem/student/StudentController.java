@@ -2,6 +2,7 @@ package com.abuenglishcenter.managementsystem.student;
 
 import java.util.List;
 
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 @RestController 
@@ -20,7 +21,7 @@ public class StudentController {
     }
 
     @PostMapping 
-    public StudentResponseDto createStudent(@RequestBody StudentCreateRequestDto request) {
+    public StudentResponseDto createStudent(@Valid @RequestBody StudentCreateRequestDto request) {
         return studentService.createStudent(request);
     }
     

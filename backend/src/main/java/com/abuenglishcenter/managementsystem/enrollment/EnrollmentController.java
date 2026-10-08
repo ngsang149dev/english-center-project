@@ -2,6 +2,7 @@ package com.abuenglishcenter.managementsystem.enrollment;
 
 import java.util.List;
 
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,7 +25,7 @@ public class EnrollmentController {
     }
 
     @PostMapping 
-    public EnrollmentResponseDto createEnrollment(@RequestBody EnrollmentCreateRequestDto request) {
+    public EnrollmentResponseDto createEnrollment(@Valid @RequestBody EnrollmentCreateRequestDto request) {
         return enrollmentService.createEnrollment(request);
     }
 }

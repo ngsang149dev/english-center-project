@@ -3,6 +3,7 @@ package com.abuenglishcenter.managementsystem.billing;
 import java.math.BigDecimal;
 import java.util.List;
 
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,7 +34,7 @@ public class InvoiceController {
     }
 
     @PostMapping
-    public InvoiceResponseDto createInvoice(@RequestBody InvoiceCreateRequestDto request) {
+    public InvoiceResponseDto createInvoice(@Valid @RequestBody InvoiceCreateRequestDto request) {
         return invoiceService.createInvoice(request);
     }
 

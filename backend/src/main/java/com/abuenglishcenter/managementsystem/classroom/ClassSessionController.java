@@ -2,6 +2,7 @@ package com.abuenglishcenter.managementsystem.classroom;
 
 import java.util.List;
 
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,7 +28,7 @@ public class ClassSessionController {
     }
 
     @PostMapping
-    public ClassSessionResponseDto createClassSession(@RequestBody ClassSessionCreateRequestDto request) {
+    public ClassSessionResponseDto createClassSession(@Valid @RequestBody ClassSessionCreateRequestDto request) {
         return classSessionService.createClassSession(request);
     }
 

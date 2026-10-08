@@ -2,6 +2,7 @@ package com.abuenglishcenter.managementsystem.expense;
 
 import java.util.List;
 
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,7 +25,7 @@ public class ExpenseController {
     }
 
     @PostMapping 
-    public ExpenseResponseDto createExpense(@RequestBody ExpenseCreateRequestDto request) {
+    public ExpenseResponseDto createExpense(@Valid @RequestBody ExpenseCreateRequestDto request) {
         return expenseService.createExpense(request);
     } 
 }
