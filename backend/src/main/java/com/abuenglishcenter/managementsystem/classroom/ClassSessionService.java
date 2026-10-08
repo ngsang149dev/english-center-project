@@ -93,11 +93,12 @@ public class ClassSessionService {
         int year = sessionDate.getYear();
 
         teacherPayrollRepository.findByTeacherIdAndMonthAndYear(teacher.getId(), month, year)
-        .filter(p -> p.getStatus() != PayrollStatus.DRAFT).ifPresent(p -> {
-            throw new BusinessRuleException("Payroll of " + teacher.getUser().getFullName()
-                        + " for " + month + "/" + year + " is " + p.getStatus()
-                        + " and locked, so its sessions can no longer be changed.");
-        });
+                .filter(p -> p.getStatus() != PayrollStatus.DRAFT)
+                .ifPresent(p -> {
+                    throw new BusinessRuleException("Payroll of " + teacher.getUser().getFullName()
+                            + " for " + month + "/" + year + " is " + p.getStatus()
+                            + " and locked, so its sessions can no longer be changed.");
+                });
     }
 
     private ClassSessionResponseDto toDto(ClassSession classSession) {
