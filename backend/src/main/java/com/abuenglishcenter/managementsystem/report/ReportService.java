@@ -3,7 +3,6 @@ package com.abuenglishcenter.managementsystem.report;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.abuenglishcenter.managementsystem.billing.PaymentRepository;
@@ -13,14 +12,16 @@ import com.abuenglishcenter.managementsystem.payroll.TeacherPayrollRepository;
 
 @Service 
 public class ReportService {
-    @Autowired 
-    PaymentRepository paymentRepository;
+    
+    private final PaymentRepository paymentRepository;
+    private final ExpenseRepository expenseRepository;
+    private final TeacherPayrollRepository teacherPayrollRepository;
 
-    @Autowired 
-    ExpenseRepository expenseRepository;
-
-    @Autowired 
-    TeacherPayrollRepository teacherPayrollRepository;
+    public ReportService(PaymentRepository paymentRepository, ExpenseRepository expenseRepository, TeacherPayrollRepository teacherPayrollRepository) {
+        this.paymentRepository = paymentRepository;
+        this.expenseRepository = expenseRepository;
+        this.teacherPayrollRepository = teacherPayrollRepository;
+    }
 
     public MonthlyReportResponseDto getMonthlyReport(int year, int month) {
         LocalDate startDate = LocalDate.of(year, month, 1);

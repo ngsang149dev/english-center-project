@@ -1,6 +1,5 @@
 package com.abuenglishcenter.managementsystem.teacher;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -8,9 +7,11 @@ import java.util.List;
 @RestController 
 @RequestMapping("/teachers")
 public class TeacherController {
+    private final TeacherService teacherService;
 
-    @Autowired 
-    private TeacherService teacherService;
+    public TeacherController(TeacherService teacherService) {
+        this.teacherService = teacherService;
+    }
 
     @GetMapping 
     public List<TeacherResponseDto> getAllTeachers() {

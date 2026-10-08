@@ -8,7 +8,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,21 +18,25 @@ import com.abuenglishcenter.managementsystem.teacher.Teacher;
 import com.abuenglishcenter.managementsystem.teacher.TeacherRepository;
 
 @Service
+
 public class TeacherPayrollService {
-    @Autowired
-    private TeacherPayrollRepository teacherPayrollRepository;
+    private final TeacherPayrollRepository teacherPayrollRepository;
+    private final TeacherRepository teacherRepository;
+    private final ClassSessionRepository classSessionRepository;
+    private final TeacherRateRepository teacherRateRepository;
+    private final PayrollDetailRepository payrollDetailRepository;
 
-    @Autowired
-    private TeacherRepository teacherRepository;
-
-    @Autowired
-    private ClassSessionRepository classSessionRepository;
-
-    @Autowired
-    private TeacherRateRepository teacherRateRepository;
-
-    @Autowired
-    private PayrollDetailRepository payrollDetailRepository;
+    public TeacherPayrollService(TeacherPayrollRepository teacherPayrollRepository,
+            TeacherRepository teacherRepository,
+            ClassSessionRepository classSessionRepository,
+            TeacherRateRepository teacherRateRepository,
+            PayrollDetailRepository payrollDetailRepository) {
+        this.teacherPayrollRepository = teacherPayrollRepository;
+        this.teacherRepository = teacherRepository;
+        this.classSessionRepository = classSessionRepository;
+        this.teacherRateRepository = teacherRateRepository;
+        this.payrollDetailRepository = payrollDetailRepository;
+    }
 
     public List<TeacherPayrollResponseDto> getAllTeacherPayrolls() {
         return teacherPayrollRepository.findAll().stream().map(this::toDtoWithDetails).toList();

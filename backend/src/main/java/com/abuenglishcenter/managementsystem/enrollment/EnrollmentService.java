@@ -2,7 +2,6 @@ package com.abuenglishcenter.managementsystem.enrollment;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.abuenglishcenter.managementsystem.classroom.Classroom;
@@ -13,14 +12,15 @@ import com.abuenglishcenter.managementsystem.student.StudentRepository;
 @Service 
 public class EnrollmentService {
 
-    @Autowired 
-    private EnrollmentRepository enrollmentRepository;
+    private final EnrollmentRepository enrollmentRepository;
+    private final StudentRepository studentRepository;
+    private final ClassroomRepository classroomRepository;
 
-    @Autowired 
-    private StudentRepository studentRepository;
-
-    @Autowired 
-    private ClassroomRepository classroomRepository;
+    public EnrollmentService(EnrollmentRepository enrollmentRepository, StudentRepository studentRepository, ClassroomRepository classroomRepository) {
+        this.enrollmentRepository = enrollmentRepository;
+        this.studentRepository = studentRepository;
+        this.classroomRepository = classroomRepository;
+    }
 
     public List<EnrollmentResponseDto> getAllEnrollments() {
         return enrollmentRepository.findAll().stream().map(this::toDto).toList();

@@ -2,13 +2,16 @@ package com.abuenglishcenter.managementsystem.expense;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service 
 public class ExpenseService {
-    @Autowired 
-    private ExpenseRepository expenseRepository;
+
+    private final ExpenseRepository expenseRepository;
+
+    public ExpenseService(ExpenseRepository expenseRepository) {
+        this.expenseRepository = expenseRepository;
+    }
 
     public List<ExpenseResponseDto> getAllExpenses() {
         return expenseRepository.findAll().stream().map(this::toDto).toList();

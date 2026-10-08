@@ -1,6 +1,5 @@
 package com.abuenglishcenter.managementsystem.teacher;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,13 +13,15 @@ import java.util.List;
 @Service 
 public class TeacherService {
 
-    @Autowired 
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final TeacherRepository teacherRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired 
-    private TeacherRepository teacherRepository;
-
-    @Autowired PasswordEncoder passwordEncoder;
+    public TeacherService(UserRepository userRepository, TeacherRepository teacherRepository, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.teacherRepository = teacherRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     public List<TeacherResponseDto> getAllTeachers() {
         return teacherRepository.findAll().stream().map(this::toDto).toList();

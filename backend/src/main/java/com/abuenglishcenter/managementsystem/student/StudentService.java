@@ -2,7 +2,6 @@ package com.abuenglishcenter.managementsystem.student;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,14 +13,15 @@ import com.abuenglishcenter.managementsystem.user.UserRepository;
 @Service 
 public class StudentService {
 
-    @Autowired 
-    private StudentRepository studentRepository;
+    private final StudentRepository studentRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired 
-    private UserRepository userRepository;
-
-    @Autowired 
-    private PasswordEncoder passwordEncoder;
+    public StudentService(StudentRepository studentRepository, UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        this.studentRepository = studentRepository;
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     public List<StudentResponseDto> getAllStudents() {
         return studentRepository.findAll().stream().map(this::toDto).toList();

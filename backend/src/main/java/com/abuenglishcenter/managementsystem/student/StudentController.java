@@ -2,15 +2,17 @@ package com.abuenglishcenter.managementsystem.student;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController 
 @RequestMapping("/students")
 public class StudentController {
 
-    @Autowired 
-    private StudentService studentService;
+    private final StudentService studentService;
+
+    public StudentController(StudentService studentService) {
+        this.studentService = studentService;
+    }
 
     @GetMapping
     public List<StudentResponseDto> getAllStudents() {

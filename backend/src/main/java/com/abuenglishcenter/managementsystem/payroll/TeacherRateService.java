@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,14 +15,15 @@ import com.abuenglishcenter.managementsystem.teacher.TeacherRepository;
 @Service 
 public class TeacherRateService {
 
-    @Autowired 
-    private TeacherRateRepository teacherRateRepository;
+    private final TeacherRateRepository teacherRateRepository;
+    private final TeacherRepository teacherRepository;
+    private final ClassroomRepository classroomRepository;
 
-    @Autowired 
-    private TeacherRepository teacherRepository;
-
-    @Autowired
-    private ClassroomRepository classroomRepository;
+    public TeacherRateService(TeacherRateRepository teacherRateRepository, TeacherRepository teacherRepository, ClassroomRepository classroomRepository) {
+        this.teacherRateRepository = teacherRateRepository;
+        this.teacherRepository = teacherRepository;
+        this.classroomRepository = classroomRepository;
+    }
 
     public List<TeacherRateResponseDto> getAllTeacherRates() {
         return teacherRateRepository.findAll().stream().map(this::toDto).toList();

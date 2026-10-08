@@ -2,7 +2,6 @@ package com.abuenglishcenter.managementsystem.enrollment;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,8 +12,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/enrollments") 
 public class EnrollmentController {
 
-    @Autowired 
-    private EnrollmentService enrollmentService;
+    private final EnrollmentService enrollmentService;
+
+    public EnrollmentController(EnrollmentService enrollmentService) {
+        this.enrollmentService = enrollmentService;
+    }
 
     @GetMapping 
     public List<EnrollmentResponseDto> getAllEnrollments() {
