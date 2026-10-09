@@ -48,7 +48,6 @@ public class InvoiceService {
 
     @Transactional
     public InvoiceGenerationResultDto generateMonthlyInvoices(Integer month, Integer year) {
-        validateMonthYear(month, year);
 
         LocalDate firstDay = LocalDate.of(year, month, 1);
         LocalDate lastDay = firstDay.withDayOfMonth(firstDay.lengthOfMonth());
@@ -103,11 +102,6 @@ public class InvoiceService {
         return fee.multiply(BigDecimal.valueOf(remainingDays)).divide(BigDecimal.valueOf(daysInMonth), 0, RoundingMode.HALF_UP);
     }
 
-    private void validateMonthYear(Integer month, Integer year) {
-        if (month == null || month < 1 || month > 12 || year == null) {
-            throw new BusinessRuleException("Month must be between 1 and 12 and year is required.");
-        }
-    }
 
     private Invoice buildInvoice(Enrollment enrollment, Integer month, Integer year, BigDecimal amount, BigDecimal adjustedAmount) {
         Invoice invoice = new Invoice();
@@ -122,11 +116,6 @@ public class InvoiceService {
 
     @Transactional
     public InvoiceResponseDto createInvoice(InvoiceCreateRequestDto request) {
-        validateMonthYear(request.getMonth(), request.getYear());
-
-        if (request.getAmount() != null && request.getAmount().signum() <= 0) {
-            throw new BusinessRuleException("Amount must be positive.");
-        }
 
         Enrollment checkEnrollment = enrollmentRepository.findById(request.getEnrollmentId())
                 .orElseThrow(() -> new NotFoundException(

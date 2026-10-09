@@ -41,7 +41,7 @@ public class InvoiceController {
     }
 
     @PostMapping("/generate")
-    public InvoiceGenerationResultDto generateInvoices(@RequestParam @Min(1) @Max(12) Integer month, @RequestParam Integer year) {
+    public InvoiceGenerationResultDto generateInvoices(@RequestParam @Min(1) @Max(12) Integer month, @RequestParam @Min(2000) @Max(2100) Integer year) {
         return invoiceService.generateMonthlyInvoices(month, year);
     }
 

@@ -3,20 +3,22 @@ package com.abuenglishcenter.managementsystem.student;
 import java.time.LocalDate;
 
 import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public class StudentCreateRequestDto {
     @NotBlank
-    @Size(max = 255)
+    @Size(min = 3, max = 50)
     private String username;
     @NotBlank
-    @Size(max = 255)
+    @Size(min = 8,max = 72)
     private String password;
     @NotBlank
     @Size(max = 255)
     private String fullName;
-    @Size(max = 30)
+    @Size(max = 15)
+    @Pattern(regexp = "\\+?[0-9 ]{8,15}", message = "Phone must have 8-15 digits/spaces and may start with +")
     private String parentPhone;
     @Past
     private LocalDate dateOfBirth;
