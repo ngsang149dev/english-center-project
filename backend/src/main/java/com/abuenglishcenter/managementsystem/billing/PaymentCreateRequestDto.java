@@ -3,10 +3,21 @@ package com.abuenglishcenter.managementsystem.billing;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Positive;
+
 public class PaymentCreateRequestDto {
+    @NotNull
+    @Positive
     private Long invoiceId;
+    @NotNull
+    @Positive
     private BigDecimal amount;
+    @NotNull
+    @PastOrPresent
     private LocalDate paymentDate;
+    @NotNull
     private PaymentMethod paymentMethod;
     
     public BigDecimal getAmount() {

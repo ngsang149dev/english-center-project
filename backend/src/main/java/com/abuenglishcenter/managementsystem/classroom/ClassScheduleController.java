@@ -2,6 +2,7 @@ package com.abuenglishcenter.managementsystem.classroom;
 
 import java.util.List;
 
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,7 +25,7 @@ public class ClassScheduleController {
     }
 
     @PostMapping
-    public ClassScheduleResponseDto createClassSchedule(@RequestBody ClassScheduleCreateRequestDto request) {
+    public ClassScheduleResponseDto createClassSchedule(@Valid @RequestBody ClassScheduleCreateRequestDto request) {
         return classScheduleService.createSchedule(request);
     }
 }

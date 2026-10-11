@@ -2,6 +2,7 @@ package com.abuenglishcenter.managementsystem.payroll;
 
 import java.util.List;
 
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,7 +25,7 @@ public class TeacherRateController {
     }
 
     @PostMapping 
-    public TeacherRateResponseDto createTeacherRate(@RequestBody TeacherRateCreateRequestDto request) {
+    public TeacherRateResponseDto createTeacherRate(@Valid @RequestBody TeacherRateCreateRequestDto request) {
         return teacherRateService.createTeacherRate(request);
     }
 }

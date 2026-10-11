@@ -1,7 +1,10 @@
 package com.abuenglishcenter.managementsystem.billing;
 
-import java.math.BigDecimal;
 import java.util.List;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,18 +36,19 @@ public class InvoiceController {
     }
 
     @PostMapping
-    public InvoiceResponseDto createInvoice(@RequestBody InvoiceCreateRequestDto request) {
+    public InvoiceResponseDto createInvoice(@Valid @RequestBody InvoiceCreateRequestDto request) {
         return invoiceService.createInvoice(request);
     }
 
     @PostMapping("/generate")
-    public InvoiceGenerationResultDto generateInvoices(@RequestParam Integer month, @RequestParam Integer year) {
+    public InvoiceGenerationResultDto generateInvoices(@RequestParam @Min(1) @Max(12) Integer month, @RequestParam @Min(2000) @Max(2100) Integer year) {
         return invoiceService.generateMonthlyInvoices(month, year);
     }
 
     @PutMapping("/{id}/amount")
-    public InvoiceResponseDto updateAdjustedAmount(@PathVariable Long id, @RequestBody BigDecimal amount) {
-        return invoiceService.updateAdjustedAmount(id, amount);
+    public InvoiceResponseDto updateAdjustedAmount(@PathVariable Long id,
+            @Valid @RequestBody InvoiceAmountUpdateRequestDto request) {
+        return invoiceService.updateAdjustedAmount(id, request.getAmount());
     }
 
 }

@@ -2,6 +2,7 @@ package com.abuenglishcenter.managementsystem.classroom;
 
 import java.util.List;
 
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,12 +34,13 @@ public class ClassroomController {
     }
 
     @PostMapping
-    public ClassroomResponseDto createClassroom(@RequestBody ClassroomCreateRequestDto request) {
+    public ClassroomResponseDto createClassroom(@Valid @RequestBody ClassroomCreateRequestDto request) {
         return classroomService.createClassroom(request);
     }
 
     @PutMapping("/{id}/teacher")
-    public ClassroomResponseDto updateTeacher(@PathVariable Long id, @RequestBody Long teacherId) {
-        return classroomService.updateTeacher(id, teacherId);
+    public ClassroomResponseDto updateTeacher(@PathVariable Long id,
+            @Valid @RequestBody ClassroomTeacherUpdateRequestDto request) {
+        return classroomService.updateTeacher(id, request.getTeacherId());
     }
 }

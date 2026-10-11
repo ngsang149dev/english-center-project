@@ -2,7 +2,14 @@ package com.abuenglishcenter.managementsystem.attendance;
 
 import java.util.List;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+
 public class AttendanceCreateRequestDto {
+    @NotNull
+    @Positive
     private Long sessionId;
 
     /*{
@@ -14,6 +21,8 @@ public class AttendanceCreateRequestDto {
         ]
     }
    */
+    @NotEmpty
+    @Valid
     private List<AttendanceItemDto> attendances;
 
     public Long getSessionId() {

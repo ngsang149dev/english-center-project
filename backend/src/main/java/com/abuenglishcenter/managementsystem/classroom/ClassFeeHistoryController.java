@@ -2,6 +2,7 @@ package com.abuenglishcenter.managementsystem.classroom;
 
 import java.util.List;
 
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,7 +25,7 @@ public class ClassFeeHistoryController {
     }
 
     @PostMapping
-    public ClassFeeHistoryResponseDto createFeeHistory(@RequestBody ClassFeeHistoryCreateRequestDto request) {
+    public ClassFeeHistoryResponseDto createFeeHistory(@Valid @RequestBody ClassFeeHistoryCreateRequestDto request) {
         return classFeeHistoryService.createFeeHistory(request);
     }
 }

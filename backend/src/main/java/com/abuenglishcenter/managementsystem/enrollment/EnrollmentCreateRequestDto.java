@@ -2,9 +2,17 @@ package com.abuenglishcenter.managementsystem.enrollment;
 
 import java.time.LocalDate;
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+
 public class EnrollmentCreateRequestDto {
+    @NotNull
+    @Positive
     private Long studentId;
+    @NotNull
+    @Positive
     private Long classId;
+    @NotNull
     private LocalDate enrolledDate;
     
     public Long getStudentId() {

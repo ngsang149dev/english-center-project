@@ -1,8 +1,8 @@
 package com.abuenglishcenter.managementsystem.payroll;
 
-import java.math.BigDecimal;
 import java.util.List;
 
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,18 +30,20 @@ public class TeacherPayrollController {
     }
 
     @PostMapping 
-    public TeacherPayrollResponseDto createTeacherPayroll(@RequestBody TeacherPayrollCreateRequestDto request) {
+    public TeacherPayrollResponseDto createTeacherPayroll(@Valid @RequestBody TeacherPayrollCreateRequestDto request) {
         return teacherPayrollService.createTeacherPayroll(request);
     } 
 
     @PutMapping("/{id}/bonus")
-    public TeacherPayrollResponseDto updateBonus(@PathVariable Long id, @RequestBody BigDecimal newBonus) {
-        return teacherPayrollService.updateBonus(id, newBonus);
+    public TeacherPayrollResponseDto updateBonus(@PathVariable Long id,
+            @Valid @RequestBody TeacherPayrollBonusUpdateRequestDto request) {
+        return teacherPayrollService.updateBonus(id, request.getBonus());
     }
 
     @PutMapping("/{id}/status")
-    public TeacherPayrollResponseDto updateStatus(@PathVariable Long id, @RequestBody PayrollStatus newStatus) {
-        return teacherPayrollService.updateStatus(id, newStatus);
+    public TeacherPayrollResponseDto updateStatus(@PathVariable Long id,
+            @Valid @RequestBody TeacherPayrollStatusUpdateRequestDto request) {
+        return teacherPayrollService.updateStatus(id, request.getStatus());
     }
 
     @PostMapping("/{id}/recalculate")
