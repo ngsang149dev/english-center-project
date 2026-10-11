@@ -17,7 +17,6 @@ public class TeacherCreateRequestDto {
     private String fullName;
     @Size(max = 255)
     private String specialization;
-    @Size(max = 15)
     @Pattern(regexp = "\\+?[0-9 ]{8,15}", message = "Phone must have 8-15 digits/spaces and may start with +")
     private String phone;
     

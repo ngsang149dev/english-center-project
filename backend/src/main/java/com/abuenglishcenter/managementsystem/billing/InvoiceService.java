@@ -102,7 +102,6 @@ public class InvoiceService {
         return fee.multiply(BigDecimal.valueOf(remainingDays)).divide(BigDecimal.valueOf(daysInMonth), 0, RoundingMode.HALF_UP);
     }
 
-
     private Invoice buildInvoice(Enrollment enrollment, Integer month, Integer year, BigDecimal amount, BigDecimal adjustedAmount) {
         Invoice invoice = new Invoice();
         invoice.setEnrollment(enrollment);

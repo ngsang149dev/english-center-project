@@ -6,7 +6,6 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.Size;
 
 public class InvoiceCreateRequestDto {
     @NotNull
@@ -17,8 +16,7 @@ public class InvoiceCreateRequestDto {
     @Max(12)
     private Integer month;
     @NotNull
-    @Positive
-    @Size(min = 2000, max = 2100)
+    @Min(2000) @Max(2100)
     private Integer year;
     @Positive
     private BigDecimal amount;
