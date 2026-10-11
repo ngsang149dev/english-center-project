@@ -24,5 +24,4 @@ public class StudentController {
     public StudentResponseDto createStudent(@Valid @RequestBody StudentCreateRequestDto request) {
         return studentService.createStudent(request);
     }
-    
 }
