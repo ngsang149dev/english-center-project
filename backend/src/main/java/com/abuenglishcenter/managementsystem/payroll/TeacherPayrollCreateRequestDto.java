@@ -14,7 +14,7 @@ public class TeacherPayrollCreateRequestDto {
     @Max(12)
     private Integer month;
     @NotNull
-    @Min(2000) @Max(2000)
+    @Min(2000) @Max(2100)
     private Integer year;
 
     public TeacherPayrollCreateRequestDto() {
