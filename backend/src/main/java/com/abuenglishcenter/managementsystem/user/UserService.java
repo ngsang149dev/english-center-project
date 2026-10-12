@@ -9,26 +9,16 @@ import java.util.List;
 
 @Service 
 public class UserService {
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository; 
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;   
     }
 
     public List<UserResponseDto> getAllUsers() {
         return userRepository.findAll().stream().map(this::toDto).toList();
     }
 
-    public UserResponseDto createUser(User user) {
-        if (userRepository.existsByUsername(user.getUsername())) {
-            throw new BusinessRuleException("Username '" + user.getUsername() + "' already exists.");
-        }
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        User saved = userRepository.save(user);
-        return toDto(saved);
-    }
 
     private UserResponseDto toDto(User user) {
         return new UserResponseDto(user.getId(), user.getUsername(), user.getRole().name(), user.getFullName());
