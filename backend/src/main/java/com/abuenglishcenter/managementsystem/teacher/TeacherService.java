@@ -4,20 +4,22 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.abuenglishcenter.managementsystem.exception.BusinessRuleException;
 import com.abuenglishcenter.managementsystem.user.Role;
 import com.abuenglishcenter.managementsystem.user.User;
 import com.abuenglishcenter.managementsystem.user.UserRepository;
 
 import java.util.List;
 
-@Service 
+@Service
 public class TeacherService {
 
     private final UserRepository userRepository;
     private final TeacherRepository teacherRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public TeacherService(UserRepository userRepository, TeacherRepository teacherRepository, PasswordEncoder passwordEncoder) {
+    public TeacherService(UserRepository userRepository, TeacherRepository teacherRepository,
+            PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.teacherRepository = teacherRepository;
         this.passwordEncoder = passwordEncoder;
@@ -27,8 +29,13 @@ public class TeacherService {
         return teacherRepository.findAll().stream().map(this::toDto).toList();
     }
 
-    @Transactional 
+    @Transactional
     public TeacherResponseDto createTeacher(TeacherCreateRequestDto request) {
+
+        if (userRepository.existsByUsername(request.getUsername())) {
+            throw new BusinessRuleException("Username '" + request.getUsername() + "' already exists.");
+        }
+        
         User newUser = new User();
         newUser.setUsername(request.getUsername());
         newUser.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -46,6 +53,7 @@ public class TeacherService {
     }
 
     private TeacherResponseDto toDto(Teacher teacher) {
-        return new TeacherResponseDto(teacher.getId(),teacher.getUser().getUsername(),teacher.getUser().getFullName(), teacher.getSpecialization(), teacher.getPhone());
+        return new TeacherResponseDto(teacher.getId(), teacher.getUser().getUsername(), teacher.getUser().getFullName(),
+                teacher.getSpecialization(), teacher.getPhone());
     }
 }

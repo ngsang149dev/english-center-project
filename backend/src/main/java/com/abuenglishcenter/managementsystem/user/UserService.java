@@ -3,6 +3,8 @@ package com.abuenglishcenter.managementsystem.user;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.abuenglishcenter.managementsystem.exception.BusinessRuleException;
+
 import java.util.List;
 
 @Service 
@@ -20,6 +22,9 @@ public class UserService {
     }
 
     public UserResponseDto createUser(User user) {
+        if (userRepository.existsByUsername(user.getUsername())) {
+            throw new BusinessRuleException("Username '" + user.getUsername() + "' already exists.");
+        }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         User saved = userRepository.save(user);
         return toDto(saved);
