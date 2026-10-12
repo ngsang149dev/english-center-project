@@ -1,4 +1,14 @@
 {
-    "java.compile.nullAnalysis.mode": "automatic",
-    "java.configuration.updateBuildConfiguration": "interactive"
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Backend (dev)",
+      "request": "launch",
+      "mainClass": "com.abuenglishcenter.managementsystem.ManagementsystemApplication",
+      "projectName": "managementsystem",
+      "envFile": "${workspaceFolder}/.env"
+    }
+],
+"java.compile.nullAnalysis.mode": "automatic"
 }
