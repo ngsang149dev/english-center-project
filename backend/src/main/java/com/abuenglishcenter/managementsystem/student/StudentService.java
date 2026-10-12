@@ -6,18 +6,20 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.abuenglishcenter.managementsystem.exception.BusinessRuleException;
 import com.abuenglishcenter.managementsystem.user.Role;
 import com.abuenglishcenter.managementsystem.user.User;
 import com.abuenglishcenter.managementsystem.user.UserRepository;
 
-@Service 
+@Service
 public class StudentService {
 
     private final StudentRepository studentRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public StudentService(StudentRepository studentRepository, UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public StudentService(StudentRepository studentRepository, UserRepository userRepository,
+            PasswordEncoder passwordEncoder) {
         this.studentRepository = studentRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -27,8 +29,13 @@ public class StudentService {
         return studentRepository.findAll().stream().map(this::toDto).toList();
     }
 
-    @Transactional 
+    @Transactional
     public StudentResponseDto createStudent(StudentCreateRequestDto request) {
+
+        if (userRepository.existsByUsername(request.getUsername())) {
+            throw new BusinessRuleException("Username '" + request.getUsername() + "' already exists.");
+        }
+        
         User newUser = new User();
         newUser.setUsername(request.getUsername());
         newUser.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -47,6 +54,8 @@ public class StudentService {
     }
 
     private StudentResponseDto toDto(Student student) {
-        return new StudentResponseDto(student.getId(),student.getUser().getUsername(),student.getUser().getFullName(), student.getParentPhone(), student.getDateOfBirth(), student.getStatus(), student.getEvaluationSheetUrl());
+        return new StudentResponseDto(student.getId(), student.getUser().getUsername(), student.getUser().getFullName(),
+                student.getParentPhone(), student.getDateOfBirth(), student.getStatus(),
+                student.getEvaluationSheetUrl());
     }
 }

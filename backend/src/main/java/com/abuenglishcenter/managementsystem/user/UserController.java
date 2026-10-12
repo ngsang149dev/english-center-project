@@ -19,9 +19,5 @@ public class UserController {
         return userService.getAllUsers();
     }
 
-    @PostMapping 
-    public UserResponseDto createUser(@RequestBody User user) {
-        return userService.createUser(user);
-    }
 }
 
