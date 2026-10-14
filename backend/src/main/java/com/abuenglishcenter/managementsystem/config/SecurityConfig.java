@@ -24,7 +24,7 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth.requestMatchers("/auth/login").permitAll()
-                        .requestMatchers("/auth/me").authenticated().anyRequest().permitAll())
+                        .requestMatchers("/auth/me").authenticated().anyRequest().hasRole("ADMIN"))
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
         return http.build();
     }

@@ -13,6 +13,8 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 
@@ -36,5 +38,15 @@ public class JwtConfig {
     @Bean 
     public JwtDecoder jwtDecoder(SecretKey jwtSecretKey) {
             return NimbusJwtDecoder.withSecretKey(jwtSecretKey).macAlgorithm(MacAlgorithm.HS256).build();
+    }
+
+    @Bean 
+    public JwtAuthenticationConverter jwtAuthenticationConverter() {
+        JwtGrantedAuthoritiesConverter authorities = new JwtGrantedAuthoritiesConverter();
+        authorities.setAuthoritiesClaimName("role");
+        authorities.setAuthorityPrefix("ROLE_");
+        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+        converter.setJwtGrantedAuthoritiesConverter(authorities);
+        return converter;
     }
 }
