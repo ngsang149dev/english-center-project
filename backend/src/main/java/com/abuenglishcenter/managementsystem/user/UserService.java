@@ -24,7 +24,7 @@ public class UserService {
     }
 
     public UserResponseDto getUserById(Long id) {
-        User checkUser = userRepository.findById(id).orElseThrow(() -> new NotFoundException("User id" + id + "not found"));
+        User checkUser = userRepository.findById(id).orElseThrow(() -> new NotFoundException("User with id " + id + " not found"));
         return toDto(checkUser);
     }
 }
