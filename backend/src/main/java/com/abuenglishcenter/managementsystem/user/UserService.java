@@ -2,6 +2,7 @@ package com.abuenglishcenter.managementsystem.user;
 
 import org.springframework.stereotype.Service;
 
+import com.abuenglishcenter.managementsystem.exception.NotFoundException;
 
 import java.util.List;
 
@@ -20,5 +21,10 @@ public class UserService {
 
     private UserResponseDto toDto(User user) {
         return new UserResponseDto(user.getId(), user.getUsername(), user.getRole().name(), user.getFullName());
+    }
+
+    public UserResponseDto getUserById(Long id) {
+        User checkUser = userRepository.findById(id).orElseThrow(() -> new NotFoundException("User id" + id + "not found"));
+        return toDto(checkUser);
     }
 }
