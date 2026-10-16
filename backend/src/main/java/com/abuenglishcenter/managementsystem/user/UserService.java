@@ -36,7 +36,9 @@ public class UserService {
 
     @Transactional 
     public UserResponseDto createUser(UserCreateRequestDto request) {
-        if (request.getRole() != Role.ADMIN) throw new BusinessRuleException("Only ADMIN accounts can be created here. Use POST /teachers or POST /students");
+        if (request.getRole() != Role.ADMIN) {
+            throw new BusinessRuleException("Only ADMIN accounts can be created here. Use POST /teachers or POST /students");
+        }
         userRepository.findByUsername(request.getUsername()).orElseThrow(() -> new BusinessRuleException("User " + request.getUsername() + " not found"));
 
         User newUser = new User();
