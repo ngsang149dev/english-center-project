@@ -2,6 +2,7 @@ package com.abuenglishcenter.managementsystem.user;
 
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 
 import java.util.List;
 @RestController 
@@ -19,5 +20,9 @@ public class UserController {
         return userService.getAllUsers();
     }
 
+    @PostMapping 
+    public UserResponseDto createUser(@Valid @RequestBody UserCreateRequestDto request) {
+        return userService.createUser(request);
+    }
 }
 
