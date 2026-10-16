@@ -1,6 +1,7 @@
 package com.abuenglishcenter.managementsystem.user;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public class UserCreateRequestDto {
@@ -14,6 +15,7 @@ public class UserCreateRequestDto {
     @NotBlank 
     @Size(max = 255)
     private String fullName;
+    @NotNull 
     private Role role;
 
     public String getUsername() {

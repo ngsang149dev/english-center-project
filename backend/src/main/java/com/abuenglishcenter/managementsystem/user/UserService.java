@@ -39,8 +39,10 @@ public class UserService {
         if (request.getRole() != Role.ADMIN) {
             throw new BusinessRuleException("Only ADMIN accounts can be created here. Use POST /teachers or POST /students");
         }
-        userRepository.findByUsername(request.getUsername()).orElseThrow(() -> new BusinessRuleException("User " + request.getUsername() + " not found"));
-
+        
+        if (userRepository.existsByUsername(request.getUsername())) {
+            throw new BusinessRuleException("Username '" + request.getUsername() +"' already exists");
+        }
         User newUser = new User();
         newUser.setUsername(request.getUsername());
         newUser.setFullName(request.getFullName());
