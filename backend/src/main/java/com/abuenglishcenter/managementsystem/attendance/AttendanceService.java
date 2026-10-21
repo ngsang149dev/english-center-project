@@ -5,7 +5,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,10 +27,6 @@ public class AttendanceService {
         this.attendanceRepository = attendanceRepository;
         this.classSessionRepository = classSessionRepository;
         this.enrollmentRepository = enrollmentRepository;
-    }
-
-    public List<AttendanceResponseDto> getAllAttendances() {
-        return attendanceRepository.findAll().stream().map(this::toDto).toList();
     }
 
     public List<AttendanceResponseDto> getAttendances(Long sessionId, Long enrollmentId) {
@@ -91,6 +86,7 @@ public class AttendanceService {
         return savedList.stream().map(this::toDto).toList();
     }
 
+    @Transactional 
     public AttendanceResponseDto updateAttendance(Long id, AttendanceUpdateRequestDto request) {
         Attendance checkAttendance = attendanceRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Attendance with id " + id + " not found"));

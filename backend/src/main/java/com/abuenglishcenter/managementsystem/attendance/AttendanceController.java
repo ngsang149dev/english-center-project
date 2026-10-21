@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -22,8 +23,10 @@ public class AttendanceController {
     }
 
     @GetMapping
-    public List<AttendanceResponseDto> getAllAttendances() {
-        return attendanceService.getAllAttendances();
+    public List<AttendanceResponseDto> getAllAttendances(
+            @RequestParam(required = false) Long sessionId,
+            @RequestParam(required = false) Long enrollmentId) {
+        return attendanceService.getAttendances(sessionId, enrollmentId);
     }
 
     @PostMapping
@@ -32,7 +35,8 @@ public class AttendanceController {
     }
 
     @PutMapping("/{id}")
-    public AttendanceResponseDto updateAttendance(@PathVariable Long id, @Valid @RequestBody AttendanceUpdateRequestDto request) {
+    public AttendanceResponseDto updateAttendance(@PathVariable Long id,
+            @Valid @RequestBody AttendanceUpdateRequestDto request) {
         return attendanceService.updateAttendance(id, request);
     }
 }
