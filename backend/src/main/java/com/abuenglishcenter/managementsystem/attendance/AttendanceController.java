@@ -4,7 +4,9 @@ import java.util.List;
 
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,5 +29,10 @@ public class AttendanceController {
     @PostMapping
     public List<AttendanceResponseDto> createAttendance(@Valid @RequestBody AttendanceCreateRequestDto request) {
         return attendanceService.createAttendance(request);
+    }
+
+    @PutMapping("/{id}")
+    public AttendanceResponseDto updateAttendance(@PathVariable Long id, @Valid @RequestBody AttendanceUpdateRequestDto request) {
+        return attendanceService.updateAttendance(id, request);
     }
 }

@@ -12,20 +12,22 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
-@Entity 
-@Table(name = "attendances")
+@Entity
+@Table(name = "attendances", uniqueConstraints = @UniqueConstraint(name = "uq_attendance_session_enrollment", columnNames = {
+        "session_id", "enrollment_id" }))   
 public class Attendance {
-    
-    @Id 
+
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne 
+    @ManyToOne
     @JoinColumn(name = "enrollment_id")
     private Enrollment enrollment;
 
-    @ManyToOne 
+    @ManyToOne
     @JoinColumn(name = "session_id")
     private ClassSession session;
 
