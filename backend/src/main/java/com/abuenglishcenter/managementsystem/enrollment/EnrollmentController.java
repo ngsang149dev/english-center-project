@@ -37,12 +37,12 @@ public class EnrollmentController {
     }
 
     @PutMapping("/{id}")
-    public EnrollmentResponseDto updateEnrollment(@PathVariable Long id, @RequestBody EnrollmentUpdateRequestDto request) {
+    public EnrollmentResponseDto updateEnrollment(@PathVariable Long id, @Valid @RequestBody EnrollmentUpdateRequestDto request) {
         return enrollmentService.updateEnrollment(id, request.getEnrolledDate());
     }
     
     @PutMapping("/{id}/status")
-    public EnrollmentResponseDto updateEnrollmentStatus(@PathVariable Long id, @RequestBody EnrollmentStatusUpdateRequestDto request) {
+    public EnrollmentResponseDto updateEnrollmentStatus(@PathVariable Long id, @Valid @RequestBody EnrollmentStatusUpdateRequestDto request) {
         return enrollmentService.updateEnrollmentStatus(id, request.getStatus());
     }
 

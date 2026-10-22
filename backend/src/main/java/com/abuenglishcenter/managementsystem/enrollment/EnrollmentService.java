@@ -35,7 +35,7 @@ public class EnrollmentService {
 
     public EnrollmentResponseDto getEnrollmentById(Long id) {
         Enrollment checkEnrollment = enrollmentRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Enrollment with id " + id + " not found."));
+                .orElseThrow(() -> new NotFoundException("Enrollment with id " + id + " not found"));
         return toDto(checkEnrollment);
     }
 
@@ -48,7 +48,7 @@ public class EnrollmentService {
 
         if (checkStudent.getStatus() != StudentStatus.ACTIVE) {
             throw new BusinessRuleException("Student with id " + checkStudent.getId() + " is "
-                    + checkStudent.getStatus() + ". Only ACTIVE students can be enrolled");
+                    + checkStudent.getStatus() + ". Only ACTIVE students can be enrolled.");
         }
 
         if (enrollmentRepository.existsByStudentIdAndClassroomIdAndStatus(checkStudent.getId(), checkClassroom.getId(),
@@ -74,7 +74,7 @@ public class EnrollmentService {
     @Transactional
     public EnrollmentResponseDto updateEnrollment(Long id, LocalDate newEnrolledDate) {
         Enrollment checkEnrollment = enrollmentRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Enrollment with id " + id + " not found."));
+                .orElseThrow(() -> new NotFoundException("Enrollment with id " + id + " not found"));
 
         checkEnrollment.setEnrolledDate(newEnrolledDate);
 
@@ -84,7 +84,7 @@ public class EnrollmentService {
     @Transactional
     public EnrollmentResponseDto updateEnrollmentStatus(Long id, EnrollmentStatus newStatus) {
         Enrollment checkEnrollment = enrollmentRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Enrollment with id " + id + " not found."));
+                .orElseThrow(() -> new NotFoundException("Enrollment with id " + id + " not found"));
 
         if (checkEnrollment.getStatus() == newStatus) {
             throw new BusinessRuleException("Enrollment " + id + " is already " + newStatus + ".");
@@ -92,7 +92,7 @@ public class EnrollmentService {
 
         if (!checkEnrollment.getStatus().canMoveTo(newStatus)) {
             throw new BusinessRuleException(
-                    "Cannot change enrollment status form " + checkEnrollment.getStatus() + " to " + newStatus + ".");
+                    "Cannot change enrollment status from " + checkEnrollment.getStatus() + " to " + newStatus + ".");
         }
 
         checkEnrollment.setStatus(newStatus);
