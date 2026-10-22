@@ -46,10 +46,6 @@ public class Enrollment {
         return activeFlag;
     }
 
-    public void setActiveFlag(Short activeFlag) {
-        this.activeFlag = activeFlag;
-    }
-
     public Long getId() {
         return id;
     }
