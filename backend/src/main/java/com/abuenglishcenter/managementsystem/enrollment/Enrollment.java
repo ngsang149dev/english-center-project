@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import com.abuenglishcenter.managementsystem.classroom.Classroom;
 import com.abuenglishcenter.managementsystem.student.Student;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -14,20 +15,22 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
-@Entity 
-@Table(name = "enrollments")
+@Entity
+@Table(name = "enrollments", uniqueConstraints = @UniqueConstraint(name = "uk_enrollment_active", columnNames = {
+        "student_id", "class_id", "active_flag" }))
 public class Enrollment {
-    
-    @Id 
+
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne 
+    @ManyToOne
     @JoinColumn(name = "student_id")
     private Student student;
 
-    @ManyToOne 
+    @ManyToOne
     @JoinColumn(name = "class_id")
     private Classroom classroom;
 
@@ -35,6 +38,17 @@ public class Enrollment {
 
     @Enumerated(EnumType.STRING)
     private EnrollmentStatus status;
+
+    @Column(name = "active_flag", insertable = false, updatable = false, columnDefinition = "TINYINT GENERATED ALWAYS AS (IF(status = 'ACTIVE', 1, NULL)) STORED")
+    private Short activeFlag;
+
+    public Short getActiveFlag() {
+        return activeFlag;
+    }
+
+    public void setActiveFlag(Short activeFlag) {
+        this.activeFlag = activeFlag;
+    }
 
     public Long getId() {
         return id;
@@ -76,5 +90,4 @@ public class Enrollment {
         this.status = status;
     }
 
-    
 }
