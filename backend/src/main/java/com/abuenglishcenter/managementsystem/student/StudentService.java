@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.abuenglishcenter.managementsystem.exception.BusinessRuleException;
+import com.abuenglishcenter.managementsystem.exception.NotFoundException;
 import com.abuenglishcenter.managementsystem.user.Role;
 import com.abuenglishcenter.managementsystem.user.User;
 import com.abuenglishcenter.managementsystem.user.UserRepository;
@@ -51,6 +52,44 @@ public class StudentService {
         Student savedStudent = studentRepository.save(newStudent);
 
         return toDto(savedStudent);
+    }
+
+    public StudentResponseDto getStudentById(Long id) {
+        return toDto(findStudentOrThrow(id));
+    }
+
+    @Transactional
+    public StudentResponseDto updateStudent(Long id, StudentUpdateRequestDto request) {
+        Student checkStudent = findStudentOrThrow(id);
+
+        // fullName lives on User; the entity is managed so the change flushes with the transaction
+        checkStudent.getUser().setFullName(request.getFullName());
+        checkStudent.setParentPhone(request.getParentPhone());
+        checkStudent.setDateOfBirth(request.getDateOfBirth());
+        checkStudent.setEvaluationSheetUrl(request.getEvaluationSheetUrl());
+
+        return toDto(studentRepository.save(checkStudent));
+    }
+
+    @Transactional
+    public StudentResponseDto updateStudentStatus(Long id, StudentStatus newStatus) {
+        Student checkStudent = findStudentOrThrow(id);
+
+        if (checkStudent.getStatus() == newStatus) {
+            throw new BusinessRuleException("Student " + id + " is already " + newStatus + ".");
+        }
+        if (!checkStudent.getStatus().canMoveTo(newStatus)) {
+            throw new BusinessRuleException("Cannot change student status from " + checkStudent.getStatus()
+                    + " to " + newStatus + ".");
+        }
+
+        checkStudent.setStatus(newStatus);
+        return toDto(studentRepository.save(checkStudent));
+    }
+
+    private Student findStudentOrThrow(Long id) {
+        return studentRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Student with id " + id + " not found"));
     }
 
     private StudentResponseDto toDto(Student student) {

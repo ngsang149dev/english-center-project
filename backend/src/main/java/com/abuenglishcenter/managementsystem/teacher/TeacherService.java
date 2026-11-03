@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.abuenglishcenter.managementsystem.exception.BusinessRuleException;
+import com.abuenglishcenter.managementsystem.exception.NotFoundException;
 import com.abuenglishcenter.managementsystem.user.Role;
 import com.abuenglishcenter.managementsystem.user.User;
 import com.abuenglishcenter.managementsystem.user.UserRepository;
@@ -50,6 +51,26 @@ public class TeacherService {
         Teacher savedTeacher = teacherRepository.save(newTeacher);
 
         return toDto(savedTeacher);
+    }
+
+    public TeacherResponseDto getTeacherById(Long id) {
+        return toDto(findTeacherOrThrow(id));
+    }
+
+    @Transactional
+    public TeacherResponseDto updateTeacher(Long id, TeacherUpdateRequestDto request) {
+        Teacher checkTeacher = findTeacherOrThrow(id);
+
+        checkTeacher.getUser().setFullName(request.getFullName());
+        checkTeacher.setSpecialization(request.getSpecialization());
+        checkTeacher.setPhone(request.getPhone());
+
+        return toDto(teacherRepository.save(checkTeacher));
+    }
+
+    private Teacher findTeacherOrThrow(Long id) {
+        return teacherRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Teacher with id " + id + " not found"));
     }
 
     private TeacherResponseDto toDto(Teacher teacher) {

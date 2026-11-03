@@ -24,4 +24,13 @@ public class TeacherController {
         return teacherService.createTeacher(request);
     }
 
+    @GetMapping("/{id}")
+    public TeacherResponseDto getTeacherById(@PathVariable Long id) {
+        return teacherService.getTeacherById(id);
+    }
+
+    @PutMapping("/{id}")
+    public TeacherResponseDto updateTeacher(@PathVariable Long id, @Valid @RequestBody TeacherUpdateRequestDto request) {
+        return teacherService.updateTeacher(id, request);
+    }
 }
