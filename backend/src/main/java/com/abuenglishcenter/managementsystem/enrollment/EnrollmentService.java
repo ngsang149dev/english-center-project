@@ -33,6 +33,10 @@ public class EnrollmentService {
         return enrollmentRepository.findAll().stream().map(this::toDto).toList();
     }
 
+    public List<EnrollmentResponseDto> getEnrollmentsByStudentId(Long studentId) {
+        return enrollmentRepository.findByStudentId(studentId).stream().map(this::toDto).toList();
+    }
+
     public EnrollmentResponseDto getEnrollmentById(Long id) {
         Enrollment checkEnrollment = enrollmentRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Enrollment with id " + id + " not found"));

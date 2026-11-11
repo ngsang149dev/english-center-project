@@ -2,6 +2,7 @@ package com.abuenglishcenter.managementsystem.payroll;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,6 +13,8 @@ public interface TeacherPayrollRepository extends JpaRepository<TeacherPayroll, 
     boolean existsByTeacherIdAndMonthAndYear(Long teacherId, Integer month, Integer year);
 
     Optional<TeacherPayroll> findByTeacherIdAndMonthAndYear(Long teacherId, Integer month, Integer year);
+
+    List<TeacherPayroll> findByTeacherId(Long teacherId);
 
     @Query("SELECT COALESCE(SUM(p.totalPay), 0) FROM TeacherPayroll p " +
        "WHERE p.status = :status AND p.paidDate >= :startDate AND p.paidDate <= :endDate")

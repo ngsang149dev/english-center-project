@@ -31,7 +31,10 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth.requestMatchers("/auth/login").permitAll()
-                        .requestMatchers("/auth/me").authenticated().anyRequest().hasRole("ADMIN"))
+                        .requestMatchers("/auth/me").authenticated()
+                        .requestMatchers("/me/teacher/**").hasRole("TEACHER")
+                        .requestMatchers("/me/student/**").hasRole("STUDENT")
+                        .anyRequest().hasRole("ADMIN"))
                 .exceptionHandling(e -> e.authenticationEntryPoint(handlers).accessDeniedHandler(handlers))
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .authenticationEntryPoint(handlers)

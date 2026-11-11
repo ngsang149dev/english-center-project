@@ -58,6 +58,11 @@ public class StudentService {
         return toDto(findStudentOrThrow(id));
     }
 
+    public StudentResponseDto getStudentByUserId(Long userId) {
+        return toDto(studentRepository.findByUserId(userId)
+                .orElseThrow(() -> new NotFoundException("Student profile for user " + userId + " not found")));
+    }
+
     @Transactional
     public StudentResponseDto updateStudent(Long id, StudentUpdateRequestDto request) {
         Student checkStudent = findStudentOrThrow(id);

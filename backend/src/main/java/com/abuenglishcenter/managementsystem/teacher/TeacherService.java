@@ -57,6 +57,11 @@ public class TeacherService {
         return toDto(findTeacherOrThrow(id));
     }
 
+    public TeacherResponseDto getTeacherByUserId(Long userId) {
+        return toDto(teacherRepository.findByUserId(userId)
+                .orElseThrow(() -> new NotFoundException("Teacher profile for user " + userId + " not found")));
+    }
+
     @Transactional
     public TeacherResponseDto updateTeacher(Long id, TeacherUpdateRequestDto request) {
         Teacher checkTeacher = findTeacherOrThrow(id);

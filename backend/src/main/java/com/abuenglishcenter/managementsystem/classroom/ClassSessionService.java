@@ -32,6 +32,10 @@ public class ClassSessionService {
         return classSessionRepository.findAll().stream().map(this::toDto).toList();
     }
 
+    public List<ClassSessionResponseDto> getSessionsByTeacherId(Long teacherId) {
+        return classSessionRepository.findByTeacherId(teacherId).stream().map(this::toDto).toList();
+    }
+
     public ClassSessionResponseDto createClassSession(ClassSessionCreateRequestDto request) {
         Classroom checkClassroom = classroomRepository.findById(request.getClassId())
                 .orElseThrow(() -> new NotFoundException(
