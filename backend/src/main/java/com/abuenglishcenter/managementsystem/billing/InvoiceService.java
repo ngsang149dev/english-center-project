@@ -173,6 +173,13 @@ public class InvoiceService {
         invoiceRepository.save(invoice);
     }
 
+    public BigDecimal getRemainingAmount(Invoice invoice) {
+        // rows created before the adjusted-amount column existed fall back to the billed amount
+        BigDecimal billed = invoice.getAdjustedAmount() != null ? invoice.getAdjustedAmount() : invoice.getAmount();
+        BigDecimal paid = paymentRepository.sumValidByInvoice(invoice.getId());
+        return billed.subtract(paid).max(BigDecimal.ZERO);
+    }
+
     public List<InvoiceResponseDto> getInvoicesByStudent(Long studentId) {
         ensureStudentExists(studentId);
 

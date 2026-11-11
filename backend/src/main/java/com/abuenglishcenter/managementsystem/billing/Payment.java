@@ -3,6 +3,7 @@ package com.abuenglishcenter.managementsystem.billing;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -25,6 +26,7 @@ public class Payment {
     @JoinColumn(name = "invoice_id")
     private Invoice invoice;
 
+    @Column(precision = 12, scale = 2)
     private BigDecimal amount;
     private LocalDate paymentDate;
     

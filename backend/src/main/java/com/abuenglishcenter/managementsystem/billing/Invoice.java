@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 
 import com.abuenglishcenter.managementsystem.enrollment.Enrollment;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -28,7 +29,9 @@ public class Invoice {
 
     private Integer month;
     private Integer year;
+    @Column(precision = 12, scale = 2)
     private BigDecimal amount;
+    @Column(precision = 12, scale = 2)
     private BigDecimal adjustedAmount;
 
     @Enumerated(EnumType.STRING)

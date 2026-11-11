@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 
 import com.abuenglishcenter.managementsystem.classroom.Classroom;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -28,7 +29,9 @@ public class PayrollDetail {
     private Classroom classroom;
 
     private Integer sessionsTaught;
+    @Column(precision = 12, scale = 2)
     private BigDecimal rateApplied;
+    @Column(precision = 12, scale = 2)
     private BigDecimal subtotal;
     
     public Long getId() {
