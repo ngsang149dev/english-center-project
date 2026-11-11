@@ -15,6 +15,7 @@ public record PageResponseDto<T>(List<T> items, int page, int size, long totalIt
 
     /** Safety cap for a single page, mirrors the controllers' @Max. */
     public static final int MAX_SIZE = 100;
+    public static final int MAX_PAGE = 1000;
 
     public static <E, T> PageResponseDto<T> of(Page<E> page, Function<E, T> mapper) {
         Page<T> mapped = page.map(mapper);

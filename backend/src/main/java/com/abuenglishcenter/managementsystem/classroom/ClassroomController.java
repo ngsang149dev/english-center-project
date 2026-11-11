@@ -30,7 +30,7 @@ public class ClassroomController {
     }
 
     @GetMapping
-    public PageResponseDto<ClassroomResponseDto> getAllClassrooms(@RequestParam(defaultValue = "0") @Min(0) int page,
+    public PageResponseDto<ClassroomResponseDto> getAllClassrooms(@RequestParam(defaultValue = "0") @Min(0) @Max(1000) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
         return classroomService.getAllClassrooms(page, size);
     }

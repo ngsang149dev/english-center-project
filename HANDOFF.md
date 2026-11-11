@@ -149,7 +149,11 @@ Wrapper cố định cho **mọi list endpoint** (không trả `Page<T>` của S
 - Query: `?page=0&size=20`; `page >= 0`, `1 <= size <= 100`; sai → **400** `errors.page` / `errors.size` (method validation của Spring, không cần `@Validated`).
 - Áp cho 14 endpoint: `users`, `teachers`, `students`, `classes`, `class-schedules`, `class-sessions`, `class-fee-history`, `enrollments`, `attendances` (giữ filter `sessionId`/`enrollmentId`), `invoices` (giữ filter `studentId`), `payments`, `teacher-rates`, `teacher-payrolls`, `expenses`.
 - `/me/...` và `/classes/{id}/schedules` vẫn trả **array** (dữ liệu của 1 người/lớp, không cần phân trang).
-- Verified: `?size=2` → `totalPages=2`, `page=1` → 1 item, `page=5` → `items: []`, `size=500` → 400, `page=-1` → 400, `size=abc` → 400, không token → 401.
+- `page` cap **1000** (`@Max(1000)`) → offset tối đa 1000×100 = 100k row, tránh deep-offset scan và tràn `int` của JPA.
+- `/invoices?studentId=...` gọi `ensureStudentExists` → student không tồn tại = **404**, không trả page rỗng.
+- Verified: `?size=2` → `totalPages=2`, `page=1` → 1 item, `page=5` → `items: []`, `size=500` → 400, `page=-1` → 400, `page=1001` → 400, `size=abc` → 400, `/invoices?studentId=999999` → 404, không token → 401.
+
+**Breaking change (PR #17):** 14 list endpoint đổi từ JSON array → envelope `{items,...}`. Chưa có client nào (frontend làm sau, repo backend-only, deploy 1 instance) nên không cần route version. **Trước khi public API / có frontend**: chốt lại contract rồi mới freeze dưới `/api/v1`, và mọi thay đổi shape sau đó phải version hoặc deploy đồng bộ client.
 
 ## 5) Quy ước code đang dùng
 
