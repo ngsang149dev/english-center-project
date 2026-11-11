@@ -43,6 +43,10 @@ public class TeacherPayrollService {
         return teacherPayrollRepository.findAll().stream().map(this::toDtoWithDetails).toList();
     }
 
+    public List<TeacherPayrollResponseDto> getPayrollsByTeacherId(Long teacherId) {
+        return teacherPayrollRepository.findByTeacherId(teacherId).stream().map(this::toDtoWithDetails).toList();
+    }
+
     private List<ClassSession> findTaughtSessions(Teacher teacher, int month, int year) {
         LocalDate startDate = LocalDate.of(year, month, 1);
         LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());

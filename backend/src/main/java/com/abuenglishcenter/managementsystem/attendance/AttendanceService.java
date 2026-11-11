@@ -45,6 +45,10 @@ public class AttendanceService {
         return result.stream().map(this::toDto).toList();
     }
 
+    public List<AttendanceResponseDto> getAttendancesByStudentId(Long studentId) {
+        return attendanceRepository.findByEnrollmentStudentId(studentId).stream().map(this::toDto).toList();
+    }
+
     @Transactional
     public List<AttendanceResponseDto> createAttendance(AttendanceCreateRequestDto request) {
         ClassSession checkSession = classSessionRepository.findById(request.getSessionId()).orElseThrow(

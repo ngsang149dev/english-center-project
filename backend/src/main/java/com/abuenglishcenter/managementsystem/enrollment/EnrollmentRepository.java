@@ -8,4 +8,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface EnrollmentRepository extends JpaRepository<Enrollment, Long>{
     List<Enrollment> findByStatusAndEnrolledDateLessThanEqual(EnrollmentStatus status, LocalDate date);
     boolean existsByStudentIdAndClassroomIdAndStatus(Long studentId, Long classroomId, EnrollmentStatus status);
+    List<Enrollment> findByStudentId(Long studentId);
 }
