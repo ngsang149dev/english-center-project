@@ -42,24 +42,24 @@ Mục tiêu: **đồ án tốt nghiệp + portfolio**, MVP, horizon 6–12 thán
 
 Package root `com.abuenglishcenter.managementsystem` — **package-by-feature** (mỗi feature 1 folder: entity + repo + service + controller + dto).
 
-Quy mô hiện tại: 18 controller / 59 endpoint / 129 file Java / ~5.8k LOC. Test tự động: chỉ có `ManagementsystemApplicationTests` (context load) — **test nghiệp vụ vẫn là curl protocol thủ công**.
+Quy mô hiện tại: 18 controller / 59 endpoint / 130 file Java / ~5.8k LOC. **Test tự động: 29 unit test / 8 file** (`./mvnw test`, không cần MySQL): rule trạng thái 3 enum, overpay guard, login INACTIVE/ALUMNI, page wrapper, remaining amount. Integration test + curl protocol vẫn thủ công.
 
 ## 3) Trạng thái repo — ĐỌC TRƯỚC KHI LÀM
 
 ```
-origin/main = local main = fbf54fe   Merge PR #16 (Q5/Q6/Q12 + Flyway)
-PR #17 đang mở: feature/c8-pagination — chờ merge
+origin/main = local main = 3d6b454   Merge PR #18 (C8 + review fixes)
+PR #19 đang mở: feature/unit-tests — chờ merge
 ```
 
 ```zsh
 cd ~/Code/Projects/english-center-project
 git fetch --prune
 git switch main && git pull --ff-only
-git log --oneline -5      # dòng đầu phải là fbf54fe (hoặc commit/merge #17)
+git log --oneline -5      # dòng đầu phải là 3d6b454 (hoặc commit/merge #19)
 ```
 
 - Đã merge: `#10` auth, `#11` create-user, `#12` attendance, `#13` enrollment rules, `#14` C3 profile (32dfb4d), `#15` B7b (abb046d), `#16` Q5/Q6/Q12/Flyway (fbf54fe).
-- **Đang mở**: `#17` C8 pagination.
+- **Đang mở**: `#19` unit tests.
 - Remote còn branch cũ (b1b, b2, b4, b5, b6, b7, c1, c2, c3, b7b) — **không xoá**.
 - `.dsh/` **đã ignore** trong `.gitignore`; skill của agent nằm ở `~/.dsh/skills` (user scope), **không commit**.
 - Branch mới: `git switch -c feature/cX-ten-ngan` (luôn dùng đúng `feature/`).
@@ -153,6 +153,20 @@ Wrapper cố định cho **mọi list endpoint** (không trả `Page<T>` của S
 - `/invoices?studentId=...` gọi `ensureStudentExists` → student không tồn tại = **404**, không trả page rỗng.
 - Verified: `?size=2` → `totalPages=2`, `page=1` → 1 item, `page=5` → `items: []`, `size=500` → 400, `page=-1` → 400, `page=1001` → 400, `size=abc` → 400, `/invoices?studentId=999999` → 404, không token → 401.
 
+### Unit tests (PR #19)
+29 test / 8 file, thuần unit (JUnit 5 + Mockito + AssertJ), `./mvnw test` chạy ~1s, **không cần MySQL**:
+
+| File | Nội dung |
+|---|---|
+| `EnrollmentStatusTest` (4) | ACTIVE → WITHDRAWN/COMPLETED; terminal; same-status |
+| `StudentStatusTest` (3) | ACTIVE ↔ INACTIVE, cả hai → ALUMNI, ALUMNI terminal |
+| `PayrollStatusTest` (3) | DRAFT → CONFIRMED → PAID, PAID → CONFIRMED |
+| `PaymentServiceTest` (4) | overpay 1 cent = 409 đúng message, đúng bằng remaining = OK, invoice đã PAID = 409, invoice không tồn tại = 404 |
+| `InvoiceServiceTest` (3) | remaining = adjusted − paid, fallback `amount` khi thiếu `adjustedAmount`, không âm |
+| `AuthServiceTest` (6) | ACTIVE có token; INACTIVE/ALUMNI/thiếu profile = 403 và **không** phát token; sai password = 401; ADMIN bỏ qua check student |
+| `StudentServiceTest` (3) | 409 same-status / 409 ALUMNI → ACTIVE, ACTIVE → ALUMNI OK |
+| `PageResponseDtoTest` (3) | map items + totalItems/totalPages, page rỗng, cap size + sort id DESC |
+
 **Breaking change (PR #17):** 14 list endpoint đổi từ JSON array → envelope `{items,...}`. Chưa có client nào (frontend làm sau, repo backend-only, deploy 1 instance) nên không cần route version. **Trước khi public API / có frontend**: chốt lại contract rồi mới freeze dưới `/api/v1`, và mọi thay đổi shape sau đó phải version hoặc deploy đồng bộ client.
 
 ## 5) Quy ước code đang dùng
@@ -229,8 +243,8 @@ Mặc định **ROLE_ADMIN**, trừ khi ghi khác. Các endpoint `GET` dạng li
 
 ## 7) Việc tiếp theo
 
-1. **Merge PR #17** rồi `git switch main && git pull --ff-only`.
-2. **Test tự động** (ưu tiên nhất): unit test cho `canMoveTo` (enrollment/payroll/student status), overpay guard, login INACTIVE; integration test vài endpoint bằng `@SpringBootTest`.
+1. **Merge PR #19** rồi `git switch main && git pull --ff-only`.
+2. **Integration test** (bước tiếp của test): `@SpringBootTest` + MySQL/Testcontainers cho vài luồng end-to-end (login → enroll → invoice → payment). Cần DB nên tách khỏi unit suite.
 3. **Sort param** cho list (`?sort=field,asc|desc`) nếu frontend cần — hiện cố định id giảm dần.
 4. Hardening khác: audit field (`createdAt`/`updatedAt`), Docker.
 5. Backlog gốc còn **C5, C6, C7** — file gốc đã mất, phải hỏi lại Sang trước khi làm.
