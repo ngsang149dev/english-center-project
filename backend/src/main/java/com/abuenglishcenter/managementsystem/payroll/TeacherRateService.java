@@ -1,7 +1,6 @@
 package com.abuenglishcenter.managementsystem.payroll;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -9,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.abuenglishcenter.managementsystem.classroom.Classroom;
 import com.abuenglishcenter.managementsystem.classroom.ClassroomRepository;
+import com.abuenglishcenter.managementsystem.common.PageResponseDto;
 import com.abuenglishcenter.managementsystem.exception.NotFoundException;
 import com.abuenglishcenter.managementsystem.teacher.Teacher;
 import com.abuenglishcenter.managementsystem.teacher.TeacherRepository;
@@ -26,8 +26,8 @@ public class TeacherRateService {
         this.classroomRepository = classroomRepository;
     }
 
-    public List<TeacherRateResponseDto> getAllTeacherRates() {
-        return teacherRateRepository.findAll().stream().map(this::toDto).toList();
+    public PageResponseDto<TeacherRateResponseDto> getAllTeacherRates(int page, int size) {
+        return PageResponseDto.of(teacherRateRepository.findAll(PageResponseDto.pageable(page, size)), this::toDto);
     }
 
     @Transactional 

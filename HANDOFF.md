@@ -47,19 +47,19 @@ Quy mô hiện tại: 18 controller / 59 endpoint / 129 file Java / ~5.8k LOC. T
 ## 3) Trạng thái repo — ĐỌC TRƯỚC KHI LÀM
 
 ```
-origin/main = local main = abb046d   Merge PR #15 (B7b /me endpoints)
-PR #16 đang mở: feature/q5-q6-q12-flyway (commit 6a5400f) — chờ merge
+origin/main = local main = fbf54fe   Merge PR #16 (Q5/Q6/Q12 + Flyway)
+PR #17 đang mở: feature/c8-pagination — chờ merge
 ```
 
 ```zsh
 cd ~/Code/Projects/english-center-project
 git fetch --prune
 git switch main && git pull --ff-only
-git log --oneline -5      # dòng đầu phải là abb046d (hoặc commit HANDOFF này, hoặc merge #16)
+git log --oneline -5      # dòng đầu phải là fbf54fe (hoặc commit/merge #17)
 ```
 
-- Đã merge: `#10` auth, `#11` create-user, `#12` attendance, `#13` enrollment rules, `#14` C3 profile (32dfb4d), `#15` B7b (abb046d).
-- **Đang mở**: `#16` Q5 + Q6 + Q12 + Flyway.
+- Đã merge: `#10` auth, `#11` create-user, `#12` attendance, `#13` enrollment rules, `#14` C3 profile (32dfb4d), `#15` B7b (abb046d), `#16` Q5/Q6/Q12/Flyway (fbf54fe).
+- **Đang mở**: `#17` C8 pagination.
 - Remote còn branch cũ (b1b, b2, b4, b5, b6, b7, c1, c2, c3, b7b) — **không xoá**.
 - `.dsh/` **đã ignore** trong `.gitignore`; skill của agent nằm ở `~/.dsh/skills` (user scope), **không commit**.
 - Branch mới: `git switch -c feature/cX-ten-ngan` (luôn dùng đúng `feature/`).
@@ -138,6 +138,19 @@ ALTER TABLE enrollments
 - **Q12**: 11 cột tiền → `DECIMAL(12,2)` ở cả entity lẫn DB.
 - **Flyway**: `V1__baseline.sql` (schema đầy đủ, sinh từ DB thật) + `V2__money_decimal_12_2.sql`; `ddl-auto=validate`; `spring.flyway.baseline-on-migrate=true` → DB cũ được baseline ở version 1, không chạy lại CREATE TABLE.
 
+### C8 — Pagination (PR #17)
+Wrapper cố định cho **mọi list endpoint** (không trả `Page<T>` của Spring):
+
+```json
+{ "items": [...], "page": 0, "size": 20, "totalItems": 57, "totalPages": 3 }
+```
+
+- `common/PageResponseDto` (record) + `PageResponseDto.pageable(page, size)` → `PageRequest` với `Sort.by("id").descending()` (**mới nhất trước**).
+- Query: `?page=0&size=20`; `page >= 0`, `1 <= size <= 100`; sai → **400** `errors.page` / `errors.size` (method validation của Spring, không cần `@Validated`).
+- Áp cho 14 endpoint: `users`, `teachers`, `students`, `classes`, `class-schedules`, `class-sessions`, `class-fee-history`, `enrollments`, `attendances` (giữ filter `sessionId`/`enrollmentId`), `invoices` (giữ filter `studentId`), `payments`, `teacher-rates`, `teacher-payrolls`, `expenses`.
+- `/me/...` và `/classes/{id}/schedules` vẫn trả **array** (dữ liệu của 1 người/lớp, không cần phân trang).
+- Verified: `?size=2` → `totalPages=2`, `page=1` → 1 item, `page=5` → `items: []`, `size=500` → 400, `page=-1` → 400, `size=abc` → 400, không token → 401.
+
 ## 5) Quy ước code đang dùng
 
 - Controller → Service → Repository. **Constructor injection**, field `private final`.
@@ -149,6 +162,7 @@ ALTER TABLE enrollments
 - Error mapping (`GlobalExceptionHandler`): `BusinessRuleException` → **409**, `NotFoundException` → **404**, `ForbiddenException` → **403**, `@Valid` → **400** + `errors:{field:message}`, `DataIntegrityViolationException` → 409 generic, JSON hỏng/enum sai → 400 `Malformed JSON request or invalid value.`
 - Message: 404 **không** dấu chấm cuối; 409/400/403 **có** dấu chấm.
 - Tiền: `BigDecimal`, cột `DECIMAL(12,2)`, làm tròn `HALF_UP` scale 2 khi cần.
+- List endpoint: trả `PageResponseDto<T>` (`items/page/size/totalItems/totalPages`), sort mặc định `id DESC`, `size` tối đa 100.
 - `@ManyToOne` mặc định **EAGER** — cẩn thận N+1 khi list lớn.
 
 Enums hiện có:
@@ -166,7 +180,7 @@ ExpenseCategory  RENT, UTILITIES, STAFF_SALARY, MARKETING, SUPPLIES, OTHER
 
 ## 6) Endpoint hiện có
 
-Mặc định **ROLE_ADMIN**, trừ khi ghi khác.
+Mặc định **ROLE_ADMIN**, trừ khi ghi khác. Các endpoint `GET` dạng list nhận `?page=&size=` và trả wrapper `{items,page,size,totalItems,totalPages}` (xem C8).
 
 | Method | Path | Ghi chú |
 |---|---|---|
@@ -211,10 +225,11 @@ Mặc định **ROLE_ADMIN**, trừ khi ghi khác.
 
 ## 7) Việc tiếp theo
 
-1. **Merge PR #16** rồi `git switch main && git pull --ff-only`.
-2. **C8 — pagination** (đã chốt Q8 = wrapper): `{items, page, size, totalItems, totalPages}` cho các list đang `findAll()` (students, teachers, classes, enrollments, attendances, invoices, payments, expenses, class-sessions, teacher-payrolls). Query: `?page=0&size=20`, mặc định 0/20, cap 100, sai kiểu → 400.
-3. Hardening còn lại: test tự động (unit cho rule + integration vài endpoint), audit field, Docker.
-4. Backlog gốc còn **C5, C6, C7** — file gốc đã mất, phải hỏi lại Sang trước khi làm.
+1. **Merge PR #17** rồi `git switch main && git pull --ff-only`.
+2. **Test tự động** (ưu tiên nhất): unit test cho `canMoveTo` (enrollment/payroll/student status), overpay guard, login INACTIVE; integration test vài endpoint bằng `@SpringBootTest`.
+3. **Sort param** cho list (`?sort=field,asc|desc`) nếu frontend cần — hiện cố định id giảm dần.
+4. Hardening khác: audit field (`createdAt`/`updatedAt`), Docker.
+5. Backlog gốc còn **C5, C6, C7** — file gốc đã mất, phải hỏi lại Sang trước khi làm.
 
 ## 8) Câu hỏi design (trạng thái)
 
@@ -224,7 +239,7 @@ Mặc định **ROLE_ADMIN**, trừ khi ghi khác.
 | Q5 | Payment vượt số tiền còn lại | **XONG (PR #16)**: 409, chặn overpay |
 | Q6 | Student `INACTIVE` login | **XONG (PR #16)**: 403 khi login, ngoài việc đã chặn ghi danh (C2) |
 | Q7 | Session tạo tay có `teacherTaught=false`? | Có, mặc định `false` |
-| Q8 | Pagination (C8) | **CHỐT: wrapper** `{items,page,size,totalItems,totalPages}` — chưa code |
+| Q8 | Pagination (C8) | **XONG (PR #17)**: wrapper `{items,page,size,totalItems,totalPages}` |
 | Q9 | Docker hoá | Để cuối, trước khi nộp |
 | Q11 | Rounding tiền | `HALF_UP`, scale 2 |
 | Q12 | Scale cột DECIMAL | **XONG (PR #16)**: `DECIMAL(12,2)` |

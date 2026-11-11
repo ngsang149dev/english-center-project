@@ -1,11 +1,11 @@
 package com.abuenglishcenter.managementsystem.billing;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.abuenglishcenter.managementsystem.common.PageResponseDto;
 import com.abuenglishcenter.managementsystem.exception.BusinessRuleException;
 import com.abuenglishcenter.managementsystem.exception.NotFoundException;
 
@@ -23,8 +23,8 @@ public class PaymentService {
         this.invoiceService = invoiceService;
     }
 
-    public List<PaymentResponseDto> getAllPayments() {
-        return paymentRepository.findAll().stream().map(this::toDto).toList();
+    public PageResponseDto<PaymentResponseDto> getAllPayments(int page, int size) {
+        return PageResponseDto.of(paymentRepository.findAll(PageResponseDto.pageable(page, size)), this::toDto);
     }
 
     @Transactional

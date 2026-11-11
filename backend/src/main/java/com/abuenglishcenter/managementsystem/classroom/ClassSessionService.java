@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.abuenglishcenter.managementsystem.common.PageResponseDto;
 import com.abuenglishcenter.managementsystem.exception.BusinessRuleException;
 import com.abuenglishcenter.managementsystem.exception.NotFoundException;
 import com.abuenglishcenter.managementsystem.payroll.PayrollStatus;
@@ -28,8 +29,8 @@ public class ClassSessionService {
         this.teacherPayrollRepository = teacherPayrollRepository;
     }
 
-    public List<ClassSessionResponseDto> getAllClassSessions() {
-        return classSessionRepository.findAll().stream().map(this::toDto).toList();
+    public PageResponseDto<ClassSessionResponseDto> getAllClassSessions(int page, int size) {
+        return PageResponseDto.of(classSessionRepository.findAll(PageResponseDto.pageable(page, size)), this::toDto);
     }
 
     public List<ClassSessionResponseDto> getSessionsByTeacherId(Long teacherId) {

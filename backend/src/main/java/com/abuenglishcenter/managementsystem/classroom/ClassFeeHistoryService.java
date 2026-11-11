@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.abuenglishcenter.managementsystem.common.PageResponseDto;
 import com.abuenglishcenter.managementsystem.exception.NotFoundException;
 
 @Service
@@ -19,8 +20,8 @@ public class ClassFeeHistoryService {
         this.classFeeHistoryRepository = classFeeHistoryRepository;
     }
 
-    public List<ClassFeeHistoryResponseDto> getAllHistoryFees() {
-        return classFeeHistoryRepository.findAll().stream().map(this::toDto).toList();
+    public PageResponseDto<ClassFeeHistoryResponseDto> getAllHistoryFees(int page, int size) {
+        return PageResponseDto.of(classFeeHistoryRepository.findAll(PageResponseDto.pageable(page, size)), this::toDto);
     }
 
     private void closeCurrentActiveFee(Long classroomId, LocalDate newEffectiveDate) {

@@ -5,11 +5,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.abuenglishcenter.managementsystem.classroom.ClassSession;
 import com.abuenglishcenter.managementsystem.classroom.ClassSessionRepository;
+import com.abuenglishcenter.managementsystem.common.PageResponseDto;
 import com.abuenglishcenter.managementsystem.enrollment.Enrollment;
 import com.abuenglishcenter.managementsystem.enrollment.EnrollmentRepository;
 import com.abuenglishcenter.managementsystem.exception.BusinessRuleException;
@@ -29,20 +32,22 @@ public class AttendanceService {
         this.enrollmentRepository = enrollmentRepository;
     }
 
-    public List<AttendanceResponseDto> getAttendances(Long sessionId, Long enrollmentId) {
-        List<Attendance> result;
+    public PageResponseDto<AttendanceResponseDto> getAttendances(Long sessionId, Long enrollmentId, int page,
+            int size) {
+        PageRequest pageable = PageResponseDto.pageable(page, size);
 
+        Page<Attendance> result;
         if (sessionId != null && enrollmentId != null) {
-            result = attendanceRepository.findBySessionIdAndEnrollmentId(sessionId, enrollmentId);
+            result = attendanceRepository.findBySessionIdAndEnrollmentId(sessionId, enrollmentId, pageable);
         } else if (sessionId != null) {
-            result = attendanceRepository.findBySessionId(sessionId);
+            result = attendanceRepository.findBySessionId(sessionId, pageable);
         } else if (enrollmentId != null) {
-            result = attendanceRepository.findByEnrollmentId(enrollmentId);
+            result = attendanceRepository.findByEnrollmentId(enrollmentId, pageable);
         } else {
-            result = attendanceRepository.findAll();
+            result = attendanceRepository.findAll(pageable);
         }
-        
-        return result.stream().map(this::toDto).toList();
+
+        return PageResponseDto.of(result, this::toDto);
     }
 
     public List<AttendanceResponseDto> getAttendancesByStudentId(Long studentId) {

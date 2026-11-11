@@ -1,9 +1,8 @@
 package com.abuenglishcenter.managementsystem.classroom;
 
-import java.util.List;
-
 import org.springframework.stereotype.Service;
 
+import com.abuenglishcenter.managementsystem.common.PageResponseDto;
 import com.abuenglishcenter.managementsystem.exception.NotFoundException;
 import com.abuenglishcenter.managementsystem.teacher.Teacher;
 import com.abuenglishcenter.managementsystem.teacher.TeacherRepository;
@@ -19,8 +18,8 @@ public class ClassroomService {
         this.teacherRepository = teacherRepository;
     }
 
-    public List<ClassroomResponseDto> getAllClassrooms() {
-        return classroomRepository.findAll().stream().map(this::toDto).toList();
+    public PageResponseDto<ClassroomResponseDto> getAllClassrooms(int page, int size) {
+        return PageResponseDto.of(classroomRepository.findAll(PageResponseDto.pageable(page, size)), this::toDto);
     }
 
     public ClassroomResponseDto createClassroom(ClassroomCreateRequestDto request) {

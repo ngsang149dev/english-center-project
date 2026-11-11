@@ -12,11 +12,13 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.abuenglishcenter.managementsystem.classroom.ClassFeeHistory;
 import com.abuenglishcenter.managementsystem.classroom.ClassFeeHistoryRepository;
+import com.abuenglishcenter.managementsystem.common.PageResponseDto;
 import com.abuenglishcenter.managementsystem.enrollment.Enrollment;
 import com.abuenglishcenter.managementsystem.enrollment.EnrollmentRepository;
 import com.abuenglishcenter.managementsystem.enrollment.EnrollmentStatus;
@@ -84,8 +86,8 @@ public class InvoiceService {
         return new InvoiceGenerationResultDto(month, year, created, alreadyExisted, missingFee, new ArrayList<>(classesWithoutFee));
     }
 
-    public List<InvoiceResponseDto> getAllInvoices() {
-        return invoiceRepository.findAll().stream().map(this::toDto).toList();
+    public PageResponseDto<InvoiceResponseDto> getAllInvoices(int page, int size) {
+        return PageResponseDto.of(invoiceRepository.findAll(PageResponseDto.pageable(page, size)), this::toDto);
     }
 
     private BigDecimal calculateAdjustedAmount(Enrollment enrollment, BigDecimal fee, Integer month, Integer year) {
@@ -178,6 +180,12 @@ public class InvoiceService {
         BigDecimal billed = invoice.getAdjustedAmount() != null ? invoice.getAdjustedAmount() : invoice.getAmount();
         BigDecimal paid = paymentRepository.sumValidByInvoice(invoice.getId());
         return billed.subtract(paid).max(BigDecimal.ZERO);
+    }
+
+    public PageResponseDto<InvoiceResponseDto> getInvoicesByStudent(Long studentId, int page, int size) {
+        return PageResponseDto.of(
+                invoiceRepository.findByEnrollmentStudentId(studentId, PageResponseDto.pageable(page, size)),
+                this::toDto);
     }
 
     public List<InvoiceResponseDto> getInvoicesByStudent(Long studentId) {

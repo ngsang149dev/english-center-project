@@ -4,10 +4,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.abuenglishcenter.managementsystem.common.PageResponseDto;
 import com.abuenglishcenter.managementsystem.exception.BusinessRuleException;
 import com.abuenglishcenter.managementsystem.exception.NotFoundException;
-
-import java.util.List;
 
 @Service 
 public class UserService {
@@ -20,8 +19,8 @@ public class UserService {
     }
 
 
-    public List<UserResponseDto> getAllUsers() {
-        return userRepository.findAll().stream().map(this::toDto).toList();
+    public PageResponseDto<UserResponseDto> getAllUsers(int page, int size) {
+        return PageResponseDto.of(userRepository.findAll(PageResponseDto.pageable(page, size)), this::toDto);
     }
 
 

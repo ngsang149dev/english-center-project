@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.abuenglishcenter.managementsystem.common.PageResponseDto;
 import com.abuenglishcenter.managementsystem.exception.NotFoundException;
 
 @Service
@@ -18,8 +19,8 @@ public class ClassScheduleService {
         this.classroomRepository = classroomRepository;
     }
 
-    public List<ClassScheduleResponseDto> getAllClassSchedules() {
-        return classScheduleRepository.findAll().stream().map(this::toDto).toList();
+    public PageResponseDto<ClassScheduleResponseDto> getAllClassSchedules(int page, int size) {
+        return PageResponseDto.of(classScheduleRepository.findAll(PageResponseDto.pageable(page, size)), this::toDto);
     }
 
     public List<ClassScheduleResponseDto> getSchedulesByClassroom(Long classroomId) {
