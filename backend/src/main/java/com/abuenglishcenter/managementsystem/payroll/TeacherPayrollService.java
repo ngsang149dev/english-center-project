@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.abuenglishcenter.managementsystem.classroom.ClassSession;
 import com.abuenglishcenter.managementsystem.classroom.ClassSessionRepository;
+import com.abuenglishcenter.managementsystem.common.PageResponseDto;
 import com.abuenglishcenter.managementsystem.exception.BusinessRuleException;
 import com.abuenglishcenter.managementsystem.exception.NotFoundException;
 import com.abuenglishcenter.managementsystem.teacher.Teacher;
@@ -39,8 +40,8 @@ public class TeacherPayrollService {
         this.payrollDetailRepository = payrollDetailRepository;
     }
 
-    public List<TeacherPayrollResponseDto> getAllTeacherPayrolls() {
-        return teacherPayrollRepository.findAll().stream().map(this::toDtoWithDetails).toList();
+    public PageResponseDto<TeacherPayrollResponseDto> getAllTeacherPayrolls(int page, int size) {
+        return PageResponseDto.of(teacherPayrollRepository.findAll(PageResponseDto.pageable(page, size)), this::toDtoWithDetails);
     }
 
     public List<TeacherPayrollResponseDto> getPayrollsByTeacherId(Long teacherId) {

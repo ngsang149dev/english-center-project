@@ -1,10 +1,13 @@
 package com.abuenglishcenter.managementsystem.user;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
+import com.abuenglishcenter.managementsystem.common.PageResponseDto;
 
-import java.util.List;
 @RestController 
 @RequestMapping("/users")
 public class UserController {
@@ -16,8 +19,9 @@ public class UserController {
     }
 
     @GetMapping 
-    public List<UserResponseDto> getAllUsers() {
-        return userService.getAllUsers();
+    public PageResponseDto<UserResponseDto> getAllUsers(@RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
+        return userService.getAllUsers(page, size);
     }
 
     @PostMapping 
@@ -25,4 +29,3 @@ public class UserController {
         return userService.createUser(request);
     }
 }
-

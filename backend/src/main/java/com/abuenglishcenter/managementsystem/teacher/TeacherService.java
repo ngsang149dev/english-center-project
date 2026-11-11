@@ -4,13 +4,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.abuenglishcenter.managementsystem.common.PageResponseDto;
 import com.abuenglishcenter.managementsystem.exception.BusinessRuleException;
 import com.abuenglishcenter.managementsystem.exception.NotFoundException;
 import com.abuenglishcenter.managementsystem.user.Role;
 import com.abuenglishcenter.managementsystem.user.User;
 import com.abuenglishcenter.managementsystem.user.UserRepository;
-
-import java.util.List;
 
 @Service
 public class TeacherService {
@@ -26,8 +25,8 @@ public class TeacherService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public List<TeacherResponseDto> getAllTeachers() {
-        return teacherRepository.findAll().stream().map(this::toDto).toList();
+    public PageResponseDto<TeacherResponseDto> getAllTeachers(int page, int size) {
+        return PageResponseDto.of(teacherRepository.findAll(PageResponseDto.pageable(page, size)), this::toDto);
     }
 
     @Transactional

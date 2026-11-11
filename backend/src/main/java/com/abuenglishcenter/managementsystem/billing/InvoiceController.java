@@ -1,7 +1,5 @@
 package com.abuenglishcenter.managementsystem.billing;
 
-import java.util.List;
-
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -15,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.abuenglishcenter.managementsystem.common.PageResponseDto;
+
 @RestController
 @RequestMapping("/invoices")
 public class InvoiceController {
@@ -26,8 +26,11 @@ public class InvoiceController {
     }
 
     @GetMapping
-    public List<InvoiceResponseDto> getInvoices(@RequestParam(required = false) Long studentId) {
-        return studentId == null ? invoiceService.getAllInvoices() : invoiceService.getInvoicesByStudent(studentId);
+    public PageResponseDto<InvoiceResponseDto> getInvoices(@RequestParam(required = false) Long studentId,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
+        return studentId == null ? invoiceService.getAllInvoices(page, size)
+                : invoiceService.getInvoicesByStudent(studentId, page, size);
     }
 
     @GetMapping("/balance")

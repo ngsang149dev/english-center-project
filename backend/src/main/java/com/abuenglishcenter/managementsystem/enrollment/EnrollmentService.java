@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.abuenglishcenter.managementsystem.classroom.Classroom;
 import com.abuenglishcenter.managementsystem.classroom.ClassroomRepository;
+import com.abuenglishcenter.managementsystem.common.PageResponseDto;
 import com.abuenglishcenter.managementsystem.exception.BusinessRuleException;
 import com.abuenglishcenter.managementsystem.exception.NotFoundException;
 import com.abuenglishcenter.managementsystem.student.Student;
@@ -29,8 +30,8 @@ public class EnrollmentService {
         this.classroomRepository = classroomRepository;
     }
 
-    public List<EnrollmentResponseDto> getAllEnrollments() {
-        return enrollmentRepository.findAll().stream().map(this::toDto).toList();
+    public PageResponseDto<EnrollmentResponseDto> getAllEnrollments(int page, int size) {
+        return PageResponseDto.of(enrollmentRepository.findAll(PageResponseDto.pageable(page, size)), this::toDto);
     }
 
     public List<EnrollmentResponseDto> getEnrollmentsByStudentId(Long studentId) {

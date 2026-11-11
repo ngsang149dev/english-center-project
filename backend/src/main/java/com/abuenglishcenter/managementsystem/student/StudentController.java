@@ -1,9 +1,12 @@
 package com.abuenglishcenter.managementsystem.student;
 
-import java.util.List;
-
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+
 import org.springframework.web.bind.annotation.*;
+
+import com.abuenglishcenter.managementsystem.common.PageResponseDto;
 
 @RestController 
 @RequestMapping("/students")
@@ -16,8 +19,9 @@ public class StudentController {
     }
 
     @GetMapping
-    public List<StudentResponseDto> getAllStudents() {
-        return studentService.getAllStudents();
+    public PageResponseDto<StudentResponseDto> getAllStudents(@RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
+        return studentService.getAllStudents(page, size);
     }
 
     @PostMapping 

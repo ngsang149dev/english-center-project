@@ -1,8 +1,8 @@
 package com.abuenglishcenter.managementsystem.expense;
 
-import java.util.List;
-
 import org.springframework.stereotype.Service;
+
+import com.abuenglishcenter.managementsystem.common.PageResponseDto;
 
 @Service 
 public class ExpenseService {
@@ -13,8 +13,8 @@ public class ExpenseService {
         this.expenseRepository = expenseRepository;
     }
 
-    public List<ExpenseResponseDto> getAllExpenses() {
-        return expenseRepository.findAll().stream().map(this::toDto).toList();
+    public PageResponseDto<ExpenseResponseDto> getAllExpenses(int page, int size) {
+        return PageResponseDto.of(expenseRepository.findAll(PageResponseDto.pageable(page, size)), this::toDto);
     }
 
     public ExpenseResponseDto createExpense(ExpenseCreateRequestDto request) {
