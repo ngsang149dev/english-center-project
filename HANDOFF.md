@@ -1,6 +1,6 @@
 # HANDOFF — English Center Management System
 
-> Context để một session AI mới hiểu và tiếp tục công việc. **Cập nhật: 2026-11-03.**
+> Context để một session AI mới hiểu và tiếp tục công việc. **Cập nhật: 2026-11-11.**
 > Repo: https://github.com/ngsang149dev/english-center-project (public)
 > File này là nguồn sự thật về *cách làm việc* và *trạng thái code* — đọc hết trước khi làm bất cứ gì.
 
@@ -35,31 +35,32 @@ Mục tiêu: **đồ án tốt nghiệp + portfolio**, MVP, horizon 6–12 thán
 |---|---|
 | Java | 25 (Temurin 25.0.1) |
 | Spring Boot | **4.1.1** (Framework 7.0.9, Hibernate 7.4, Security 7.1, Jackson 3) |
-| DB | MySQL local Homebrew, database `english_center` |
+| DB | MySQL local Homebrew 26.7, database `english_center` |
 | Build | Maven wrapper `./mvnw` |
 | Auth | JWT HS256, stateless |
-| Migration | **chưa có** — `ddl-auto=update` |
+| Migration | **Flyway** (`backend/src/main/resources/db/migration`), `ddl-auto=validate` |
 
 Package root `com.abuenglishcenter.managementsystem` — **package-by-feature** (mỗi feature 1 folder: entity + repo + service + controller + dto).
 
-Quy mô hiện tại: 16 controller / 47 endpoint / 123 file Java / ~5.4k LOC. Test tự động: chỉ có `ManagementsystemApplicationTests` (context load) — **test nghiệp vụ vẫn là curl protocol thủ công**.
+Quy mô hiện tại: 18 controller / 59 endpoint / 129 file Java / ~5.8k LOC. Test tự động: chỉ có `ManagementsystemApplicationTests` (context load) — **test nghiệp vụ vẫn là curl protocol thủ công**.
 
 ## 3) Trạng thái repo — ĐỌC TRƯỚC KHI LÀM
 
 ```
-origin/main = local main = b5d31ef   Merge branch 'main' (sau PR #13)
-working tree sạch
+origin/main = local main = abb046d   Merge PR #15 (B7b /me endpoints)
+PR #16 đang mở: feature/q5-q6-q12-flyway (commit 6a5400f) — chờ merge
 ```
 
 ```zsh
 cd ~/Code/Projects/english-center-project
 git fetch --prune
 git switch main && git pull --ff-only
-git log --oneline -5      # dòng đầu phải là b5d31ef (hoặc commit HANDOFF mới nhất)
+git log --oneline -5      # dòng đầu phải là abb046d (hoặc commit HANDOFF này, hoặc merge #16)
 ```
 
-- Đã merge: `feature/b7-auth-login` (#10), `feature/b1b-create-user` (#11), `feature/c1-attendance` (#12), `feature/c2-enrollment-rules` (**#13**).
-- Remote còn branch cũ (b1b, b2, b4, b5, b6, b7, c1, c2) — **không xoá**.
+- Đã merge: `#10` auth, `#11` create-user, `#12` attendance, `#13` enrollment rules, `#14` C3 profile (32dfb4d), `#15` B7b (abb046d).
+- **Đang mở**: `#16` Q5 + Q6 + Q12 + Flyway.
+- Remote còn branch cũ (b1b, b2, b4, b5, b6, b7, c1, c2, c3, b7b) — **không xoá**.
 - `.dsh/` **đã ignore** trong `.gitignore`; skill của agent nằm ở `~/.dsh/skills` (user scope), **không commit**.
 - Branch mới: `git switch -c feature/cX-ten-ngan` (luôn dùng đúng `feature/`).
 
@@ -68,38 +69,30 @@ git log --oneline -5      # dòng đầu phải là b5d31ef (hoặc commit HANDO
 ### B7 — Auth (PR #10)
 - `POST /auth/login` public → `{accessToken, tokenType:"Bearer", expiresIn:28800, user}`; `GET /auth/me` authenticated.
 - Claims: `sub` = user id, `role` = Role name.
-- `SecurityConfig`: `/auth/login` permitAll, `/auth/me` authenticated, **`anyRequest().hasRole("ADMIN")`**.
-- Lỗi security trả `application/problem+json`: `ProblemDetailSecurityHandlers` implements **cả** `AuthenticationEntryPoint` và `AccessDeniedHandler`, gắn **cả hai chỗ**:
-  - `exceptionHandling(...)` → cho 403/entry point thường
-  - `oauth2ResourceServer(...).authenticationEntryPoint(...)` → cho token sai định dạng (nếu thiếu, trả 401 body rỗng)
 - `JwtAuthenticationConverter` map claim `role` + prefix `ROLE_`.
+- Lỗi security trả `application/problem+json`: `ProblemDetailSecurityHandlers` implements **cả** `AuthenticationEntryPoint` và `AccessDeniedHandler`, gắn **cả hai chỗ**: `exceptionHandling(...)` và `oauth2ResourceServer(...).authenticationEntryPoint(...)`.
 
 ### B1b — POST /users (PR #11)
 - Chỉ tạo được **ADMIN**. TEACHER/STUDENT → **409** `"Only ADMIN accounts can be created here. Use POST /teachers or POST /students"`.
-- DTO có `@NotNull role` → thiếu role = **400** + `errors.role`; gửi role khác ADMIN = **409**.
-- Trùng username → **409**.
+- `@NotNull role` → thiếu = **400** + `errors.role`; trùng username → **409**.
 
-### C1 — Attendance (PR #12, commit b7fe29d)
-- Bảng `attendances` có unique `(session_id, enrollment_id)`.
-- `POST /attendances` (batch): chặn trùng **trong request** (409), trùng **DB** (409), enrollment **không thuộc lớp** của session (409), 404 nếu session/enrollment không tồn tại. Có `@Transactional` → 1 item fail thì rollback cả batch.
-- `GET /attendances?sessionId=&enrollmentId=` lọc 4 nhánh; **không filter → `findAll()`** (tạm, pagination để C8).
+### C1 — Attendance (PR #12, b7fe29d)
+- Unique `(session_id, enrollment_id)`; `POST /attendances` batch: chặn trùng trong request (409), trùng DB (409), enrollment khác lớp (409), 404 nếu session/enrollment không có; `@Transactional` → 1 item fail rollback cả batch.
+- `GET /attendances?sessionId=&enrollmentId=` lọc 4 nhánh; không filter → `findAll()` (chờ C8).
 - `PUT /attendances/{id}` chỉ đổi `status`.
 
-### C2 — Enrollment rules (PR #13, merge 2f17895)
-Endpoint mới/đổi:
-
+### C2 — Enrollment rules (PR #13, 2f17895)
 | Method | Path | Ghi chú |
 |---|---|---|
 | GET | `/enrollments/{id}` | 404 nếu không có |
-| PUT | `/enrollments/{id}` | **chỉ** đổi `enrolledDate` (`@Valid` → thiếu = 400) |
+| PUT | `/enrollments/{id}` | **chỉ** đổi `enrolledDate` (thiếu = 400) |
 | PUT | `/enrollments/{id}/status` | `{"status": "WITHDRAWN"}` |
 
-Rule đã chốt:
-- Tạo enrollment: student phải `ACTIVE` (nếu không → 409 `Student with id X is INACTIVE. Only ACTIVE students can be enrolled.`); mỗi cặp (student, class) **chỉ 1 ACTIVE** (→ 409 `Student with id X already has an active enrollment in class Y.`).
-- Chuyển trạng thái: `ACTIVE → WITHDRAWN | COMPLETED`; WITHDRAWN/COMPLETED là **terminal** (không quay lại ACTIVE — muốn học lại thì tạo enrollment mới). Cùng status → 409 `Enrollment N is already COMPLETED.`; sai hướng → 409 `Cannot change enrollment status from COMPLETED to ACTIVE.`
-- Race 2 request đồng thời: DB unique chặn, `saveAndFlush` + catch `DataIntegrityViolationException` → vẫn 409 cùng message.
+- Tạo enrollment: student phải `ACTIVE` (409 `Student with id X is INACTIVE. Only ACTIVE students can be enrolled.`); mỗi cặp (student, class) **chỉ 1 ACTIVE** (409 `Student with id X already has an active enrollment in class Y.`).
+- `ACTIVE → WITHDRAWN | COMPLETED`; sau đó **terminal**. Cùng status → 409 `Enrollment N is already COMPLETED.`; sai hướng → `Cannot change enrollment status from COMPLETED to ACTIVE.`
+- Race 2 request: DB unique chặn, `saveAndFlush` + catch `DataIntegrityViolationException` → 409 cùng message.
 
-**DB constraint (quan trọng):** MySQL không có partial index, nên "chỉ 1 ACTIVE" được làm bằng generated column + unique:
+**DB constraint:** MySQL không có partial index → generated column + unique:
 
 ```sql
 ALTER TABLE enrollments
@@ -107,10 +100,43 @@ ALTER TABLE enrollments
   ADD UNIQUE KEY uk_enrollment_active (student_id, class_id, active_flag);
 ```
 
-- Cột `active_flag`: ACTIVE → 1, còn lại → NULL (NULL không đụng nhau) → học lại/nghỉ nhiều lần vẫn OK.
-- Hibernate `ddl-auto=update` **tự tạo cột** nhưng **KHÔNG thêm unique key** lên bảng đã tồn tại → DB mới phải chạy SQL trên tay.
-- Trước khi ALTER phải check không còn ACTIVE trùng: `SELECT student_id, class_id, COUNT(*) FROM enrollments WHERE status='ACTIVE' GROUP BY 1,2 HAVING COUNT(*)>1;` (có row là ALTER fail 1062).
-- Test đã chạy thật: create/404/409, 400 validation, học lại sau COMPLETED = 200, 2 chu kỳ WITHDRAWN = 200, insert trùng ACTIVE bị 1062.
+- ACTIVE → 1, còn lại → NULL (NULL không đụng nhau) → học lại/nghỉ nhiều lần OK.
+- **Từ PR #16 constraint này nằm trong `V1__baseline.sql`** (DB cũ đã có sẵn, DB mới sẽ có khi chạy V1).
+- Check trước khi ALTER: `SELECT student_id, class_id, COUNT(*) FROM enrollments WHERE status='ACTIVE' GROUP BY 1,2 HAVING COUNT(*)>1;`
+
+### C3 — Profile endpoints (PR #14, 32dfb4d)
+| Method | Path | Ghi chú |
+|---|---|---|
+| GET | `/students/{id}` | 404 nếu không có |
+| PUT | `/students/{id}` | full-replace `fullName`, `parentPhone`, `dateOfBirth`, `evaluationSheetUrl`; bỏ field = xoá |
+| PUT | `/students/{id}/status` | `{"status":"INACTIVE"}`, transitions: `ACTIVE ↔ INACTIVE`, cả hai → `ALUMNI`, ALUMNI terminal |
+| GET | `/teachers/{id}` | 404 nếu không có |
+| PUT | `/teachers/{id}` | `fullName`, `specialization`, `phone` |
+
+- Không cho đổi `username`/`role`/`status` qua `PUT /students/{id}`.
+- Phone: `@Pattern("\\+?[0-9 ]{8,15}")`.
+- Đã verify: INACTIVE student bị chặn `POST /enrollments` (409).
+
+### B7b — `/me` self-service (PR #15, abb046d)
+| Method | Path | Role |
+|---|---|---|
+| GET | `/me/teacher` | TEACHER |
+| GET | `/me/teacher/payrolls` | TEACHER |
+| GET | `/me/teacher/sessions` | TEACHER |
+| GET | `/me/student` | STUDENT |
+| GET | `/me/student/enrollments` | STUDENT |
+| GET | `/me/student/invoices` | STUDENT |
+| GET | `/me/student/attendances` | STUDENT |
+
+- **ID luôn lấy từ JWT `sub`**, không có param `?studentId=` → không IDOR. Profile resolve bằng `findByUserId`, 404 `Student profile for user N not found`.
+- `SecurityConfig`: `/me/teacher/**` → TEACHER, `/me/student/**` → STUDENT, còn lại ADMIN.
+- Verified: student khác gọi `/me/student/invoices` → `[]`; TEACHER gọi `/me/student` → 403; không token → 401.
+
+### Q5/Q6/Q12 + Flyway (PR #16 — đang mở)
+- **Q5 overpay**: `POST /payments` chặn khi `amount > adjustedAmount − sum(payments chưa cancel)` → **409** `Payment amount X exceeds the remaining balance Y of invoice Z.` Invoice thiếu `adjusted_amount` (data cũ) fallback về `amount`, không NPE.
+- **Q6 login**: student `INACTIVE`/`ALUMNI` → **403** `Student account is INACTIVE. Only ACTIVE students can sign in.` (exception mới `ForbiddenException` → `@ExceptionHandler` 403). Sai mật khẩu vẫn **401**.
+- **Q12**: 11 cột tiền → `DECIMAL(12,2)` ở cả entity lẫn DB.
+- **Flyway**: `V1__baseline.sql` (schema đầy đủ, sinh từ DB thật) + `V2__money_decimal_12_2.sql`; `ddl-auto=validate`; `spring.flyway.baseline-on-migrate=true` → DB cũ được baseline ở version 1, không chạy lại CREATE TABLE.
 
 ## 5) Quy ước code đang dùng
 
@@ -120,106 +146,108 @@ ALTER TABLE enrollments
 - Method ghi dữ liệu: **`@Transactional`**. Method đọc: không cần.
 - So sánh `Long` bằng `.equals()`, **không** `==`; enum thì `==` được.
 - Rule trạng thái đặt trong enum (`canMoveTo`), service check **same-status trước** rồi mới `canMoveTo`.
-- Error mapping (`GlobalExceptionHandler`): `BusinessRuleException` → **409**, `NotFoundException` → **404**, `@Valid` → **400** + `errors:{field:message}`, `DataIntegrityViolationException` → 409 generic, JSON hỏng/enum sai → 400 `Malformed JSON request or invalid value.`
-- Message: 404 **không** dấu chấm cuối (`Enrollment with id 5 not found`); 409/400 **có** dấu chấm.
+- Error mapping (`GlobalExceptionHandler`): `BusinessRuleException` → **409**, `NotFoundException` → **404**, `ForbiddenException` → **403**, `@Valid` → **400** + `errors:{field:message}`, `DataIntegrityViolationException` → 409 generic, JSON hỏng/enum sai → 400 `Malformed JSON request or invalid value.`
+- Message: 404 **không** dấu chấm cuối; 409/400/403 **có** dấu chấm.
+- Tiền: `BigDecimal`, cột `DECIMAL(12,2)`, làm tròn `HALF_UP` scale 2 khi cần.
 - `@ManyToOne` mặc định **EAGER** — cẩn thận N+1 khi list lớn.
 
 Enums hiện có:
 
 ```
 Role             ADMIN, TEACHER, STUDENT
-StudentStatus    ACTIVE, INACTIVE, ALUMNI
-EnrollmentStatus ACTIVE, WITHDRAWN, COMPLETED   (+ canMoveTo)
+StudentStatus    ACTIVE, INACTIVE, ALUMNI          (+ canMoveTo)
+EnrollmentStatus ACTIVE, WITHDRAWN, COMPLETED       (+ canMoveTo)
 AttendanceStatus PRESENT, ABSENT, LATE
 InvoiceStatus    UNPAID, PARTIALLY_PAID, PAID
 PaymentMethod    BANKING, CASH
-PayrollStatus    DRAFT, CONFIRMED, PAID        (+ canMoveTo)
+PayrollStatus    DRAFT, CONFIRMED, PAID             (+ canMoveTo)
 ExpenseCategory  RENT, UTILITIES, STAFF_SALARY, MARKETING, SUPPLIES, OTHER
 ```
 
 ## 6) Endpoint hiện có
 
-Tất cả **trừ `/auth/**`** đều yêu cầu **ROLE_ADMIN**.
+Mặc định **ROLE_ADMIN**, trừ khi ghi khác.
 
-| Method | Path |
-|---|---|
-| POST | `/auth/login` (public) |
-| GET | `/auth/me` (authenticated) |
-| GET, POST | `/users` |
-| GET, POST | `/teachers` |
-| GET, POST | `/students` |
-| GET, POST | `/classes` |
-| GET | `/classes/{id}/schedules` |
-| PUT | `/classes/{id}/teacher` |
-| GET, POST | `/class-schedules` |
-| GET, POST | `/class-sessions` |
-| PUT | `/class-sessions/{id}` |
-| PUT | `/class-sessions/{id}/teacher` |
-| GET, POST | `/class-fee-history` |
-| GET, POST | `/enrollments` |
-| GET | `/enrollments/{id}` |
-| PUT | `/enrollments/{id}` (chỉ enrolledDate) |
-| PUT | `/enrollments/{id}/status` |
-| GET, POST | `/attendances` (GET nhận `sessionId`, `enrollmentId`) |
-| PUT | `/attendances/{id}` |
-| GET, POST | `/invoices` |
-| GET | `/invoices/balance` |
-| POST | `/invoices/generate` |
-| PUT | `/invoices/{id}/amount` |
-| GET, POST | `/payments` |
-| PUT | `/payments/{id}/cancel` |
-| GET, POST | `/teacher-rates` |
-| GET, POST | `/teacher-payrolls` |
-| PUT | `/teacher-payrolls/{id}/bonus` |
-| PUT | `/teacher-payrolls/{id}/status` |
-| POST | `/teacher-payrolls/{id}/recalculate` |
-| DELETE | `/teacher-payrolls/{id}` |
-| GET, POST | `/expenses` |
-| GET | `/reports/monthly` |
-
-⚠️ TEACHER/STUDENT hiện **không gọi được** endpoint nào ngoài `/auth/me` — đó là **B7b**, đang chờ chốt Q3.
+| Method | Path | Ghi chú |
+|---|---|---|
+| POST | `/auth/login` | public |
+| GET | `/auth/me` | authenticated (mọi role) |
+| GET, POST | `/users` | |
+| GET, POST | `/teachers` | |
+| GET, PUT | `/teachers/{id}` | |
+| GET, POST | `/students` | |
+| GET, PUT | `/students/{id}` | |
+| PUT | `/students/{id}/status` | |
+| GET, POST | `/classes` | |
+| GET | `/classes/{id}/schedules` | |
+| PUT | `/classes/{id}/teacher` | |
+| GET, POST | `/class-schedules` | |
+| GET, POST | `/class-sessions` | |
+| PUT | `/class-sessions/{id}` | |
+| PUT | `/class-sessions/{id}/teacher` | |
+| GET, POST | `/class-fee-history` | |
+| GET, POST | `/enrollments` | |
+| GET | `/enrollments/{id}` | |
+| PUT | `/enrollments/{id}` | chỉ enrolledDate |
+| PUT | `/enrollments/{id}/status` | |
+| GET, POST | `/attendances` | GET nhận `sessionId`, `enrollmentId` |
+| PUT | `/attendances/{id}` | |
+| GET, POST | `/invoices` | |
+| GET | `/invoices/balance` | |
+| POST | `/invoices/generate` | |
+| PUT | `/invoices/{id}/amount` | |
+| GET, POST | `/payments` | POST chặn overpay (409) |
+| PUT | `/payments/{id}/cancel` | |
+| GET, POST | `/teacher-rates` | |
+| GET, POST | `/teacher-payrolls` | |
+| PUT | `/teacher-payrolls/{id}/bonus` | |
+| PUT | `/teacher-payrolls/{id}/status` | |
+| POST | `/teacher-payrolls/{id}/recalculate` | |
+| DELETE | `/teacher-payrolls/{id}` | |
+| GET, POST | `/expenses` | |
+| GET | `/reports/monthly` | |
+| GET | `/me/teacher` + `/payrolls` + `/sessions` | TEACHER |
+| GET | `/me/student` + `/enrollments` + `/invoices` + `/attendances` | STUDENT |
 
 ## 7) Việc tiếp theo
 
-1. **Pull main** (mục 3).
-2. **C3 — profile endpoints** (đề xuất làm tiếp): `GET /students/{id}`, `PUT /students/{id}`, `GET /teachers/{id}`, `PUT /teachers/{id}`.
-   - Student sửa được: `fullName` (nằm ở `User`), `parentPhone`, `dateOfBirth`, `evaluationSheetUrl`. **Không** cho đổi `username`/role.
-   - Teacher sửa được: `fullName`, `specialization`, `phone`.
-   - Câu hỏi mở Q13: đổi `StudentStatus` (INACTIVE/ALUMNI) — gộp vào `PUT /students/{id}` hay tách `PUT /students/{id}/status` như enrollment?
-3. **B7b** (cần Q3): TEACHER/STUDENT xem dữ liệu của mình.
-4. **C8** (cần Q8): pagination.
-5. Rồi: hardening billing/payroll, Flyway, Docker.
-
-Backlog gốc còn **C5, C6, C7** — file gốc đã mất, session mới cần hỏi lại Sang trước khi làm.
+1. **Merge PR #16** rồi `git switch main && git pull --ff-only`.
+2. **C8 — pagination** (đã chốt Q8 = wrapper): `{items, page, size, totalItems, totalPages}` cho các list đang `findAll()` (students, teachers, classes, enrollments, attendances, invoices, payments, expenses, class-sessions, teacher-payrolls). Query: `?page=0&size=20`, mặc định 0/20, cap 100, sai kiểu → 400.
+3. Hardening còn lại: test tự động (unit cho rule + integration vài endpoint), audit field, Docker.
+4. Backlog gốc còn **C5, C6, C7** — file gốc đã mất, phải hỏi lại Sang trước khi làm.
 
 ## 8) Câu hỏi design (trạng thái)
 
-| # | Câu hỏi | Trạng thái / đề xuất |
+| # | Câu hỏi | Trạng thái |
 |---|---|---|
-| Q3 | B7b: TEACHER xem payroll của mình? STUDENT xem invoice của mình? | **CHƯA CHỐT** — đề xuất: có, read-only qua `/me/...` |
-| Q5 | Payment vượt số tiền còn lại của invoice | 409, không cho overpay |
-| Q6 | Student `INACTIVE` | **ĐÃ CHỐT (C2)**: chặn ghi danh mới; chưa làm chặn login; không tự rút ghi danh cũ |
+| Q3 | B7b: TEACHER xem payroll của mình? STUDENT xem invoice? | **CHỐT: có** — read-only qua `/me/...` (PR #15) |
+| Q5 | Payment vượt số tiền còn lại | **XONG (PR #16)**: 409, chặn overpay |
+| Q6 | Student `INACTIVE` login | **XONG (PR #16)**: 403 khi login, ngoài việc đã chặn ghi danh (C2) |
 | Q7 | Session tạo tay có `teacherTaught=false`? | Có, mặc định `false` |
-| Q8 | Pagination (C8) | Làm sau, chốt response `Page<T>` trước |
+| Q8 | Pagination (C8) | **CHỐT: wrapper** `{items,page,size,totalItems,totalPages}` — chưa code |
 | Q9 | Docker hoá | Để cuối, trước khi nộp |
 | Q11 | Rounding tiền | `HALF_UP`, scale 2 |
-| Q12 | Scale cột DECIMAL | `DECIMAL(12,2)` (hiện Hibernate tạo `decimal(38,2)`) |
-| Q13 | Đổi `StudentStatus` qua endpoint nào? | **CHƯA CHỐT** — đề xuất tách `PUT /students/{id}/status` |
+| Q12 | Scale cột DECIMAL | **XONG (PR #16)**: `DECIMAL(12,2)` |
+| Q13 | Đổi `StudentStatus` qua endpoint nào? | **CHỐT**: tách `PUT /students/{id}/status` (C3) |
 
 ## 9) Gotchas
 
-- **MySQL phải chạy trước khi start app.** Kiểm tra: `brew services list | grep mysql`. (2026-11-03: đang **tắt**.)
-- App ở port **8080**; chạy lại thì phải tắt trước, không thì `Port 8080 already in use`.
-- `.env` **không commit** (`backend/.env` trong `.gitignore`); `.env.example` là mẫu. Key cần: `DB_USERNAME`, `DB_PASSWORD`, `APP_ADMIN_USERNAME`, `APP_ADMIN_PASSWORD`, `JWT_SECRET`, `SPRING_PROFILES_ACTIVE`.
-- `JWT_SECRET` phải **≥ 32 bytes**, không thì app throw `IllegalStateException` lúc start.
-- Token sống **480 phút**. Gặp 401 bất ngờ → login lại, đừng đoán.
-- `ADMIN_TOKEN` trong `.env` hay hết hạn — luôn login mới mỗi lần test.
+- **MySQL phải chạy trước khi start app.** Kiểm tra: `brew services list | grep mysql`.
+- App ở port **8080**; chạy lại phải tắt trước, không thì `Port 8080 already in use`.
+- `.env` **không commit** (`backend/.env` trong `.gitignore`); `.env.example` là mẫu. Key: `DB_USERNAME`, `DB_PASSWORD`, `APP_ADMIN_USERNAME`, `APP_ADMIN_PASSWORD`, `JWT_SECRET`, `SPRING_PROFILES_ACTIVE`.
+- `JWT_SECRET` phải **≥ 32 bytes**; token sống **480 phút** — gặp 401 thì login lại, đừng đoán.
+- **Flyway (từ PR #16)**:
+  - Schema do Flyway quản lý, `ddl-auto=validate` → đổi entity mà không thêm migration sẽ **fail lúc start** (`Schema-validation: missing column/table`).
+  - Thêm cột/bảng: tạo `V{n}__mo_ta.sql` trong `db/migration`, **không sửa file V cũ** (checksum).
+  - DB cũ đã được baseline ở version 1; **chưa test đường DB trắng** (user `english_app` không có quyền `CREATE DATABASE`). Muốn test: tạo DB mới bằng root, grant cho `english_app`, đổi `spring.datasource.url`, start app → phải chạy V1+V2 rồi boot.
+  - User `english_app` **không có quyền `DROP`** → migration chứa `DROP TABLE` sẽ fail và để lại row `success=0` trong `flyway_schema_history`. Sửa: `DELETE FROM flyway_schema_history WHERE success=0;` rồi sửa/xoá file migration.
+  - Còn rác schema cũ: bảng `classroom` (rỗng) và cột `users.fullname` (không map) — xoá tay bằng root khi rảnh.
+  - Cần **`spring-boot-flyway`** (Boot 4 tách autoconfig theo module) chứ không chỉ `flyway-core`; thiếu nó thì `spring.flyway.*` bị bỏ qua im lặng.
 - `AdminSeeder` chỉ seed ADMIN khi DB **chưa có** admin nào.
-- `ddl-auto=update` **không** tạo unique key mới trên bảng đã tồn tại (xem SQL mục 4) — và không phải cách làm production, sẽ cần Flyway.
 - Profile `dev` bật `show-sql=true` → log rất dài.
 - CORS chỉ cho `http://localhost:5173` và `http://localhost:3000`.
-- DB local đang có: 3 student (id 1–3, đều ACTIVE), 5 enrollment (id 1 ACTIVE; id 2–5 WITHDRAWN — 3 row cuối là dữ liệu test C2 cũ, **đừng xoá** vì invoice/attendance đang trỏ vào id 1–4), admin + teacher1/2 + student1/2 từ seed cũ.
-- Test xong phải **xoá dữ liệu test** vừa tạo.
+- DB local hiện có: 3 student (id 1–3 ACTIVE), 2 teacher, 6 user, 5 enrollment (id 1 ACTIVE; 2–5 WITHDRAWN — **đừng xoá**, invoice/attendance trỏ vào id 1–4), 15 class_session, 6 invoice, 6 payment.
+- Test xong phải **xoá dữ liệu test** vừa tạo; kiểm tra lại count.
 
 ## 10) Lệnh vận hành (macOS zsh)
 
@@ -228,44 +256,42 @@ Backlog gốc còn **C5, C6, C7** — file gốc đã mất, session mới cần
 brew services start mysql
 brew services list | grep mysql          # phải là started
 
-# 2) Compile
+# 2) Compile + chạy app (nạp .env, không echo secret)
 cd ~/Code/Projects/english-center-project/backend
 ./mvnw -q -DskipTests compile
-
-# 3) Chạy app (nạp .env, không echo secret)
 ( set -a; . ./.env; set +a; ./mvnw -q spring-boot:run ) > /tmp/app.log 2>&1 &
-sleep 25 && tail -5 /tmp/app.log          # thấy "Started ManagementsystemApplication"
+sleep 25 && tail -5 /tmp/app.log          # "Started ManagementsystemApplication"
 
-# 4) Lấy token + smoke test
-set -a; . backend/.env; set +a
+# 3) Token + smoke test
+set -a; . ./.env; set +a
 TOKEN=$(curl -s -X POST localhost:8080/auth/login -H 'Content-Type: application/json' \
   -d "{\"username\":\"$APP_ADMIN_USERNAME\",\"password\":\"$APP_ADMIN_PASSWORD\"}" | jq -r .accessToken)
 curl -s -o /dev/null -w '%{http_code}\n' localhost:8080/auth/me -H "Authorization: Bearer $TOKEN"   # 200
 
-# 5) Tắt app
+# 4) Tắt app
 pkill -f spring-boot:run ; sleep 2
 lsof -nP -iTCP:8080 -sTCP:LISTEN          # phải trống
 
-# 6) Query DB
-set -a; . backend/.env; set +a
+# 5) Query DB
 mysql -u "$DB_USERNAME" -p"$DB_PASSWORD" english_center \
   -e "SELECT id, username, role FROM users ORDER BY id;"
 
-# 7) Verify unique index enrollment còn đó
+# 6) Kiểm tra Flyway + index enrollment
+mysql -u "$DB_USERNAME" -p"$DB_PASSWORD" english_center -e "SELECT installed_rank,version,description,success FROM flyway_schema_history;"
 mysql -u "$DB_USERNAME" -p"$DB_PASSWORD" english_center -e "SHOW INDEX FROM enrollments;" | grep uk_enrollment_active
 ```
 
-## 11) Quy trình làm 1 feature (đã áp dụng cho B1b, C1, C2)
+## 11) Quy trình làm 1 feature (đã áp dụng cho B1b, C1, C2, C3, B7b, Q5/Q6/Q12)
 
 1. **Preflight**: `git switch main && git pull --ff-only`; working tree sạch; tạo branch `feature/cX-...`.
 2. Chốt design (hỏi Sang) → code → AI review **P0 → P1 → P2**.
 3. **Viết test protocol trước khi chạy**, 4 nhóm:
-   - **A** — happy path + validation (200/400/404/409)
+   - **A** — happy path + validation (200/400/403/404/409)
    - **F** — filter/query
    - **U** — update
    - **Z** — auth (401/403)
    Mỗi case: *input → expected status → body mong đợi*. Chạy bằng `curl` thật, ghi lại kết quả thật.
-4. **Dọn dữ liệu test** (xoá row vừa tạo) và kiểm tra lại DB.
+4. **Dọn dữ liệu test** (xoá row vừa tạo) và kiểm tra lại DB bằng count.
 5. Commit message rõ nghĩa (imperative), push, tạo PR base `main`, merge, `git switch main && git pull`.
 
 ## 12) Prompt gợi ý cho session mới
