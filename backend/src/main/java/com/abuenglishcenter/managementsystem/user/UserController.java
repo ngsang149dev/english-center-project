@@ -19,7 +19,7 @@ public class UserController {
     }
 
     @GetMapping 
-    public PageResponseDto<UserResponseDto> getAllUsers(@RequestParam(defaultValue = "0") @Min(0) int page,
+    public PageResponseDto<UserResponseDto> getAllUsers(@RequestParam(defaultValue = "0") @Min(0) @Max(1000) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
         return userService.getAllUsers(page, size);
     }

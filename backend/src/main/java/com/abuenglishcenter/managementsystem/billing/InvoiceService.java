@@ -183,6 +183,8 @@ public class InvoiceService {
     }
 
     public PageResponseDto<InvoiceResponseDto> getInvoicesByStudent(Long studentId, int page, int size) {
+        ensureStudentExists(studentId);
+
         return PageResponseDto.of(
                 invoiceRepository.findByEnrollmentStudentId(studentId, PageResponseDto.pageable(page, size)),
                 this::toDto);

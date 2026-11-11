@@ -24,7 +24,7 @@ public class TeacherRateController {
     }
     
     @GetMapping 
-    public PageResponseDto<TeacherRateResponseDto> getAllTeacherRates(@RequestParam(defaultValue = "0") @Min(0) int page,
+    public PageResponseDto<TeacherRateResponseDto> getAllTeacherRates(@RequestParam(defaultValue = "0") @Min(0) @Max(1000) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
         return teacherRateService.getAllTeacherRates(page, size);
     }

@@ -27,7 +27,7 @@ public class InvoiceController {
 
     @GetMapping
     public PageResponseDto<InvoiceResponseDto> getInvoices(@RequestParam(required = false) Long studentId,
-            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "0") @Min(0) @Max(1000) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
         return studentId == null ? invoiceService.getAllInvoices(page, size)
                 : invoiceService.getInvoicesByStudent(studentId, page, size);

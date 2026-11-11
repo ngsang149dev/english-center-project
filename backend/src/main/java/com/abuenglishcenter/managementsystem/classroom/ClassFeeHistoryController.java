@@ -24,7 +24,7 @@ public class ClassFeeHistoryController {
     }
 
     @GetMapping
-    public PageResponseDto<ClassFeeHistoryResponseDto> getAllHistoryFees(@RequestParam(defaultValue = "0") @Min(0) int page,
+    public PageResponseDto<ClassFeeHistoryResponseDto> getAllHistoryFees(@RequestParam(defaultValue = "0") @Min(0) @Max(1000) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
         return classFeeHistoryService.getAllHistoryFees(page, size);
     }
