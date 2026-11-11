@@ -40,9 +40,9 @@ public class Enrollment {
     private EnrollmentStatus status;
 
     @Column(name = "active_flag", insertable = false, updatable = false, columnDefinition = "TINYINT GENERATED ALWAYS AS (IF(status = 'ACTIVE', 1, NULL)) STORED")
-    private Short activeFlag;
+    private Byte activeFlag;
 
-    public Short getActiveFlag() {
+    public Byte getActiveFlag() {
         return activeFlag;
     }
 

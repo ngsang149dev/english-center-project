@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import com.abuenglishcenter.managementsystem.classroom.Classroom;
 import com.abuenglishcenter.managementsystem.teacher.Teacher;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -29,6 +30,7 @@ public class TeacherRate {
     @JoinColumn(name = "classroom_id")
     private Classroom classroom;
 
+    @Column(precision = 12, scale = 2)
     private BigDecimal ratePerSession;
 
     private LocalDate effectiveFrom;

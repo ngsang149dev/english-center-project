@@ -1,10 +1,12 @@
 package com.abuenglishcenter.managementsystem.billing;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.abuenglishcenter.managementsystem.exception.BusinessRuleException;
 import com.abuenglishcenter.managementsystem.exception.NotFoundException;
 
 @Service
@@ -28,6 +30,12 @@ public class PaymentService {
     @Transactional
     public PaymentResponseDto createPayment(PaymentCreateRequestDto request) {
         Invoice checkInvoice = invoiceRepository.findById(request.getInvoiceId()).orElseThrow(() -> new NotFoundException("Invoice with id " + request.getInvoiceId() + " not found"));
+
+        BigDecimal remaining = invoiceService.getRemainingAmount(checkInvoice);
+        if (request.getAmount().compareTo(remaining) > 0) {
+            throw new BusinessRuleException("Payment amount " + request.getAmount()
+                    + " exceeds the remaining balance " + remaining + " of invoice " + checkInvoice.getId() + ".");
+        }
 
         Payment newPayment = new Payment();
         newPayment.setInvoice(checkInvoice);

@@ -3,6 +3,7 @@ package com.abuenglishcenter.managementsystem.expense;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -22,6 +23,7 @@ public class Expense {
     private ExpenseCategory category;
 
     private String description;
+    @Column(precision = 12, scale = 2)
     private BigDecimal amount;
     private LocalDate expenseDate;
     

@@ -5,6 +5,7 @@ import java.time.LocalDate;
 
 import com.abuenglishcenter.managementsystem.teacher.Teacher;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -27,8 +28,11 @@ public class TeacherPayroll {
     @JoinColumn(name = "teacher_id")
     private Teacher teacher;
 
+    @Column(precision = 12, scale = 2)
     private BigDecimal sessionPay;
+    @Column(precision = 12, scale = 2)
     private BigDecimal bonus;
+    @Column(precision = 12, scale = 2)
     private BigDecimal totalPay;
     private boolean isManuallyAdjusted = false;
     private Integer month;

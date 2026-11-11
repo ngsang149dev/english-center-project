@@ -13,6 +13,11 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 
+import com.abuenglishcenter.managementsystem.exception.ForbiddenException;
+import com.abuenglishcenter.managementsystem.student.Student;
+import com.abuenglishcenter.managementsystem.student.StudentRepository;
+import com.abuenglishcenter.managementsystem.student.StudentStatus;
+import com.abuenglishcenter.managementsystem.user.Role;
 import com.abuenglishcenter.managementsystem.user.User;
 import com.abuenglishcenter.managementsystem.user.UserRepository;
 import com.abuenglishcenter.managementsystem.user.UserService;
@@ -24,20 +29,32 @@ public class AuthService {
     private final JwtEncoder jwtEncoder;
     private final long expiresInMinutes;
     private final UserService userService;
+    private final StudentRepository studentRepository;
 
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtEncoder jwtEncoder,
-            @Value("${app.jwt.expires-in-minutes}") long expiresInMinutes, UserService userService) {
+            @Value("${app.jwt.expires-in-minutes}") long expiresInMinutes, UserService userService,
+            StudentRepository studentRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtEncoder = jwtEncoder;
         this.expiresInMinutes = expiresInMinutes;
         this.userService = userService;
+        this.studentRepository = studentRepository;
     }
 
     public LoginResponseDto login(LoginRequestDto request) {
         User checkUser = userRepository.findByUsername(request.getUsername())
                 .filter(u -> passwordEncoder.matches(request.getPassword(), u.getPassword()))
                 .orElseThrow(() -> new BadCredentialsException("Invalid username or password"));
+
+        if (checkUser.getRole() == Role.STUDENT) {
+            Student checkStudent = studentRepository.findByUserId(checkUser.getId())
+                    .orElseThrow(() -> new ForbiddenException("Student profile for user " + checkUser.getId() + " not found"));
+            if (checkStudent.getStatus() != StudentStatus.ACTIVE) {
+                throw new ForbiddenException("Student account is " + checkStudent.getStatus()
+                        + ". Only ACTIVE students can sign in.");
+            }
+        }
 
         Instant now = Instant.now();
         JwtClaimsSet claims = JwtClaimsSet.builder()
